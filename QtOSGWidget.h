@@ -5,11 +5,19 @@
 #include <QKeyEvent>
 #include <QEvent>
 
-#include <osgViewer/Viewer>
-#include <osgViewer/GraphicsWindow>
 #include <osg/ShapeDrawable>
 #include <osg/Material>
 #include <osgGA/TrackballManipulator>
+#include <osgGA/FlightManipulator>
+#include <osgDB/ReadFile>
+#include <osgViewer/Viewer>
+#include <osgViewer/GraphicsWindow>
+#include <osgUtil/Optimizer>
+
+#include <iostream>
+
+#include "QtCameraManipulator.h"
+
 class QtOSGWidget : public QOpenGLWidget
 {
 	Q_OBJECT
@@ -34,6 +42,10 @@ protected:
 private:
 	osgGA::EventQueue* getEventQueue()const;
 	void setKeyboardModifiers(QInputEvent* event);
+	/**
+		 ∂¡»°3Dµ„‘∆
+	*/
+	osg::ref_ptr<osg::Vec3Array> ReadModelFile(std::string filename);
 private:
 	osg::ref_ptr<osgViewer::GraphicsWindowEmbedded> _mGraphicsWindow;
 	osg::ref_ptr<osgViewer::Viewer> _mViewer;
