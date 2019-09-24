@@ -24,35 +24,17 @@ QtOSGWidget::QtOSGWidget(QWidget *parent)
 	_mViewer(new osgViewer::Viewer),
 	_mGraphicsWindow(new osgViewer::GraphicsWindowEmbedded(this->x(),this->y(),this->width(),this->height()))
 {
-	//创建一个主摄像头并附加图形上下文
-	osg::ref_ptr<osg::Camera> camera = new osg::Camera;
-	camera->setViewport(0, 0, this->width(), this->height());
-	camera->setClearColor(osg::Vec4(0.f, 0.f, 0.f, 0.f));
-	/*float aspectRatio = static_cast<float>(this->width()) / static_cast<float>(this->height());
-	camera->setProjectionMatrixAsPerspective(30.f, aspectRatio, 0.1f, 1000.f);*/
-	camera->setProjectionMatrixAsPerspective(30, (double)this->width() / this->height(), 1, 1000);
-	camera->setGraphicsContext(_mGraphicsWindow);
-
-	//将摄像机关联到观察者
-	_mViewer->setCamera(camera);
-	
-	osg::ref_ptr<osgGA::TrackballManipulator> manipulator = new osgGA::TrackballManipulator;
-	osg::ref_ptr<osgGA::FlightManipulator> manipulator2 = new osgGA::FlightManipulator;
-	osg::ref_ptr<QtCameraManipulator> manipulator3 = new QtCameraManipulator;
-	manipulator->setAllowThrow(false);
-	_mViewer->setCameraManipulator(manipulator3);
-	_mViewer->setThreadingModel(osgViewer::ViewerBase::SingleThreaded);
-	_mViewer->realize();
-
 	//setMouseTracking(true);
 	setFocusPolicy(Qt::StrongFocus);
-
 	this->setMinimumSize(100, 100);
 }
 
 QtOSGWidget::~QtOSGWidget()
 {
 }
+/**
+度点云文件
+*/
 osg::ref_ptr<osg::Vec3Array> QtOSGWidget::ReadModelFile(std::string filePath) {
 	osg::ref_ptr<osg::Vec3Array> list = new osg::Vec3Array;
 	FILE* pfData = fopen(filePath.c_str(), "r");
@@ -90,12 +72,58 @@ osg::ref_ptr<osg::Vec3Array> QtOSGWidget::ReadModelFile(std::string filePath) {
 	}*/
 	return list;
 }
-/**
-设置OpenGL资源和状态
-*/
-void QtOSGWidget::initializeGL() {
-	osg::ref_ptr<osg::Group> root = new osg::Group();
+//创建四边形
+osg::ref_ptr<osg::Node> QtOSGWidget::createQuad() {
+		osg::ref_ptr<osg::Geode> geode = new osg::Geode();
+		osg::ref_ptr<osg::Geometry> geom = new osg::Geometry();
+		//创建顶点数组，注意顺序逆时针
+		osg::ref_ptr<osg::Vec3Array> v = new osg::Vec3Array();
+		v->push_back(osg::Vec3(0.0f, 0.0f, 0.0f));
+		v->push_back(osg::Vec3(1.0f, 0.0f, 0.0f));
+		v->push_back(osg::Vec3(1.0f, 0.0f, 1.0f));
+		v->push_back(osg::Vec3(0.0f, 0.0f, 1.0f));
+		//设置顶点数据
+		geom->setVertexArray(v.get());
 
+		//创建纹理坐标
+		osg::ref_ptr<osg::Vec2Array> vt = new osg::Vec2Array();
+		vt->push_back(osg::Vec2(0.0f, 0.0f));
+		vt->push_back(osg::Vec2(1.0f, 0.0f));
+		vt->push_back(osg::Vec2(1.0f, 1.0f));
+		vt->push_back(osg::Vec2(0.0f, 1.0f));
+		//设置纹理坐标
+		geom->setTexCoordArray(0, vt.get());
+
+		//创建颜色数组
+		osg::ref_ptr<osg::Vec4Array> vc = new osg::Vec4Array();
+		vc->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
+		vc->push_back(osg::Vec4(0.0f, 1.0f, 0.0f, 1.0f));
+		vc->push_back(osg::Vec4(0.0f, 0.0f, 1.0f, 1.0f));
+		vc->push_back(osg::Vec4(1.0f, 1.0f, 0.0f, 1.0f));
+		//设置颜色数组
+		geom->setColorArray(vc.get());
+		//设置颜色绑定方式为单个顶点
+		geom->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
+
+		//创建法线数组
+		osg::ref_ptr<osg::Vec3Array> nc = new osg::Vec3Array();
+		nc->push_back(osg::Vec3(0.0f, -1.0f, 0.0f));
+		//设置法线数组
+		geom->setNormalArray(nc.get());
+		//设置法线绑定方式为全部顶点
+		geom->setNormalBinding(osg::Geometry::BIND_OVERALL);
+
+		//添加图元，绘图基元为四边形
+		geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS, 0, 4));
+
+		//将图元添加至叶子节点
+		geode->addDrawable(geom.get());
+
+		geode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
+		return geode.get();
+}
+osg::ref_ptr<osg::Node>  QtOSGWidget::createCloud() {
+	//画点云
 	osg::ref_ptr<osg::Vec3Array> coords = ReadModelFile("model.txt");
 	osg::ref_ptr<osg::Geometry> geometry = new osg::Geometry;
 
@@ -108,9 +136,68 @@ void QtOSGWidget::initializeGL() {
 
 	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
 	geode->addDrawable(geometry);
-	root->addChild(geode.get());
-	root->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
+	//root->addChild(geode.get());
+	//geode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
+	return geode.get();
+}
+osg::ref_ptr<osg::Node> QtOSGWidget::createShape() {
+	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+	float radius = 0.8f;
+	float height = 1.0f;
+	//精细程度
+	osg::ref_ptr<osg::TessellationHints> hints = new osg::TessellationHints;
+	hints->setDetailRatio(0.5f);
+	//球体
+	geode->addDrawable(new osg::ShapeDrawable(new osg::Sphere(osg::Vec3(0, 0, 0), radius), hints));
+	//正方形
+	geode->addDrawable(new osg::ShapeDrawable(new osg::Box(osg::Vec3(2.0f, 0.0, 0.0), 2 * radius),hints));
+	//圆锥
+	geode->addDrawable(new osg::ShapeDrawable(new osg::Cone(osg::Vec3(4.0f, 0.0f, 0.0), radius, height), hints));
+	//圆柱
+	geode->addDrawable(new osg::ShapeDrawable(new osg::Cylinder(osg::Vec3(6.0f, 0.0f, 0.0f), radius, height), hints));
+	//太空舱
+	geode->addDrawable(new osg::ShapeDrawable(new osg::Capsule(osg::Vec3(8.0f, 0.0f, 0.0f), radius, height), hints));
+	return geode.get();
+}
+/**
+设置OpenGL资源和状态
+*/
+void QtOSGWidget::initializeGL() {
+	//创建一个主摄像头并附加图形上下文
+	//osg::ref_ptr<osg::Camera> camera = new osg::Camera();
+	//camera->setViewport(0, 0, this->width(), this->height());
+	//camera->setClearColor(osg::Vec4(0.9f, 0.8f, 0.0f, 1.0f));
+	///*float aspectRatio = static_cast<float>(this->width()) / static_cast<float>(this->height());
+	//camera->setProjectionMatrixAsPerspective(30.f, aspectRatio, 0.1f, 1000.f);*/
+	//camera->setProjectionMatrixAsPerspective(30, (double)this->width() / this->height(), 1, 1000);
+	//camera->setGraphicsContext(_mGraphicsWindow.get());
 
+	////将摄像机关联到观察者
+	//_mViewer->setCamera(camera.get());
+	osg::Camera* camera = _mViewer->getCamera();
+	camera->setClearColor(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	camera->setGraphicsContext(_mGraphicsWindow.get());
+
+	/*osg::ref_ptr<osgGA::TrackballManipulator> manipulator = new osgGA::TrackballManipulator();
+	osg::ref_ptr<osgGA::FlightManipulator> manipulator2 = new osgGA::FlightManipulator;*/
+	osg::ref_ptr<QtCameraManipulator> manipulator = new QtCameraManipulator;
+	manipulator->setAllowThrow(false);
+	_mViewer->setCameraManipulator(manipulator.get());
+	//_mViewer->addEventHandler(new osgViewer::StatsHandler);
+	//_mViewer->addEventHandler(new osgViewer::ThreadingHandler());
+	//_mViewer->addEventHandler(new osgViewer::HelpHandler);
+	//_mViewer->addEventHandler(new osgGA::StateSetManipulator(_mViewer->getCamera()->getOrCreateStateSet()));
+	//_mViewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
+	_mViewer->setThreadingModel(osgViewer::ViewerBase::SingleThreaded);
+	_mViewer->realize();
+
+
+	osg::ref_ptr<osg::Group> root = new osg::Group();
+
+	//root->addChild(createQuad().get());
+	//root->addChild(createCloud().get());
+	root->addChild(createShape().get());
+	
 	
 
 
@@ -123,15 +210,15 @@ void QtOSGWidget::initializeGL() {
 	//osg::ref_ptr<osg::Geode> geode = new osg::Geode;
 	//geode->addDrawable(sd);
 	//root->addChild(geode);
+
 	//osg::ref_ptr<osg::StateSet> stateSet = geode->getOrCreateStateSet();
 	//osg::ref_ptr<osg::Material> material = new osg::Material;
 	//material->setColorMode(osg::Material::AMBIENT_AND_DIFFUSE);
 	//stateSet->setAttributeAndModes(material, osg::StateAttribute::ON);
 
-	//_mViewer->setSceneData(geode);
-	//osg::ref_ptr<osg::Node> node = osgDB::readRefNodeFile("ceshi2.STL");
-	//root->addChild(node);
-	//_mViewer->setSceneData(node);
+	/*osg::ref_ptr<osg::Node> node = osgDB::readRefNodeFile("ceshi2.STL");
+	root->addChild(node);
+	_mViewer->setSceneData(node);*/
 
 	
 	//从观察者获取节点的方式
@@ -141,10 +228,10 @@ void QtOSGWidget::initializeGL() {
 
 	//优化场景数据
 	osgUtil::Optimizer optimizer;
-	optimizer.optimize(root);
+	optimizer.optimize(root.get());
 	_mViewer->setSceneData(root);
 	_mViewer->realize();
-	glEnable(GL_DEPTH_TEST);
+	//glEnable(GL_DEPTH_TEST);
 }
 /**
 在场景更新时渲染OpenGL

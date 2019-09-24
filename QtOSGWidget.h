@@ -9,9 +9,11 @@
 #include <osg/Material>
 #include <osgGA/TrackballManipulator>
 #include <osgGA/FlightManipulator>
+#include <osgGA/StateSetManipulator>
 #include <osgDB/ReadFile>
 #include <osgViewer/Viewer>
 #include <osgViewer/GraphicsWindow>
+#include <osgViewer/ViewerEventHandlers>
 #include <osgUtil/Optimizer>
 
 #include <iostream>
@@ -46,6 +48,13 @@ private:
 		 读取3D点云
 	*/
 	osg::ref_ptr<osg::Vec3Array> ReadModelFile(std::string filename);
+	//测试：
+	//创建四边形
+	osg::ref_ptr<osg::Node> createQuad();
+	//创建测试点云
+	osg::ref_ptr<osg::Node> createCloud();
+	//创建预定义几何体
+	osg::ref_ptr<osg::Node> createShape();
 private:
 	osg::ref_ptr<osgViewer::GraphicsWindowEmbedded> _mGraphicsWindow;
 	osg::ref_ptr<osgViewer::Viewer> _mViewer;
