@@ -113,6 +113,11 @@ void QtCameraManipulator::computeHomePosition(const osg::Camera *camera, bool us
 			boundingSphere.center(),
 			osg::Vec3d(0.0f, 0.0f, 1.0f),
 			_autoComputeHomePosition);
+
+			/*setHomePosition(boundingSphere.center() + osg::Vec3d(0.0, -dist, 0.0),
+				boundingSphere.center(),
+				osg::Vec3d(0.0f, 0.0f, 1.0f),
+				_autoComputeHomePosition);*/
 	}
 }
 //bool QtCameraManipulator::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& us) {
