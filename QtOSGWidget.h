@@ -54,6 +54,10 @@ private:
 	osgGA::EventQueue* getEventQueue()const;
 	void setKeyboardModifiers(QInputEvent* event);
 	/**
+		计算节点Node位置
+	*/
+	void computeNodePosition(osg::Node* node, const osg::Camera *camera, bool useBoundingBox);
+	/**
 		 读取3D点云
 	*/
 	osg::ref_ptr<osg::Vec3Array> ReadModelFile(std::string filename);
@@ -81,6 +85,7 @@ public slots:
 	void onShape();
 	void onGlider();
 	void onClear();
+	void onRecHeightRamp(int axis, QColor beginColor, QColor endColor);
 private:
 	osg::ref_ptr<osgViewer::GraphicsWindowEmbedded> _mGraphicsWindow;
 	osg::ref_ptr<osgViewer::Viewer> _mViewer;

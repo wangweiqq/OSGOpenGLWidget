@@ -69,6 +69,11 @@ void QtOSGWidget::initializeGL() {
 	
 	//osg::ref_ptr<osg::Group> pGroup = _mViewer->getSceneData()->asGroup();
 	osg::ref_ptr<osg::Group> root =  new osg::Group();
+	
+	QByteArray barr = QString("root").toLocal8Bit();
+	char* bdata = barr.data();
+	root->setName(bdata);
+	//std::cout << root->getName() << std::endl;
 	//osgUtil::Optimizer optimizer;
 	//optimizer.optimize(root.get());
 	//_mViewer->setSceneData(root);
@@ -91,12 +96,7 @@ void QtOSGWidget::initializeGL() {
 	//glEnable(GL_DEPTH_TEST);
 
 
-	//osg::Geode* cloudGeode = dynamic_cast<osg::Geode*>(getChildNode("CloudPoints"));
-	////开始颜色
-	//osg::Vec4 bcolor(1.0f, 0.0f, 0.0f, 1.0f);
-	////结束颜色
-	//osg::Vec4 ecolor(0.0f, 1.0f, 0.0f, 1.0f);
-	//ChangedCloudColor(cloudGeode, osg::Vec3(0.0f,1.0f,0.0f), osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f), osg::Vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	
 }
 /**
 在场景更新时渲染OpenGL
@@ -275,14 +275,17 @@ void QtOSGWidget::onCylinder() {
 		isEmpty = true;
 		root = new osg::Group;
 	}
-	root->addChild(createCylinder().get());
-	if (isEmpty) {
+	osg::ref_ptr<osg::Node> node = createCylinder();
+	root->addChild(node.get());
+	_mViewer->setSceneData(NULL);
+	//computeNodePosition(node.get(), _mViewer->getCamera(), false);
+	//if (isEmpty) {
 		//优化场景数据
 		osgUtil::Optimizer optimizer;
 		optimizer.optimize(root.get());
 		_mViewer->setSceneData(root);
 		_mViewer->realize();
-	}
+	//}
 	this->update();
 }
 void QtOSGWidget::onQuad() {
@@ -292,14 +295,17 @@ void QtOSGWidget::onQuad() {
 		isEmpty = true;
 		root = new osg::Group;
 	}
-	root->addChild(createQuad().get());
-	if (isEmpty) {
+	osg::ref_ptr<osg::Node> node = createQuad();
+	root->addChild(node.get());
+	_mViewer->setSceneData(NULL);
+	//computeNodePosition(node.get(), _mViewer->getCamera(), false);
+	//if (isEmpty) {
 		//优化场景数据
 		osgUtil::Optimizer optimizer;
 		optimizer.optimize(root.get());
 		_mViewer->setSceneData(root);
 		_mViewer->realize();
-	}
+	//}
 	this->update();
 }
 void QtOSGWidget::onCloud() {
@@ -309,14 +315,26 @@ void QtOSGWidget::onCloud() {
 		isEmpty = true;
 		root = new osg::Group;
 	}
-	root->addChild(createCloud().get());
-	if (isEmpty) {
+	osg::ref_ptr<osg::Node> node = createCloud();
+	root->addChild(node.get());
+	//_mViewer->setSceneData(NULL);
+	_mViewer->setCameraManipulator(NULL);
+	//computeNodePosition(node.get(), _mViewer->getCamera(), false);
+	osg::ref_ptr<QtCameraManipulator> manipulator = new QtCameraManipulator;
+	manipulator->setAllowThrow(false);
+	_mViewer->setCameraManipulator(manipulator.get());
+	//if (isEmpty) {
 		//优化场景数据
-		osgUtil::Optimizer optimizer;
+		/*osgUtil::Optimizer optimizer;
 		optimizer.optimize(root.get());
 		_mViewer->setSceneData(root);
-		_mViewer->realize();
-	}
+		_mViewer->realize();*/
+	//}
+	//computeNodePosition(node.get(), _mViewer->getCamera(), false);
+	/*_mViewer->getCamera()->setViewMatrixAsLookAt(osg::Vec3(1000,1000,2000),
+		osg::Vec3(1000, 1000, 1000),
+		osg::Vec3d(0.0f, 0.0f, 1.0f)
+		);*/
 	this->update();
 }
 void QtOSGWidget::onShape() {
@@ -326,14 +344,17 @@ void QtOSGWidget::onShape() {
 		isEmpty = true;
 		root = new osg::Group;
 	}
-	root->addChild(createShape().get());
-	if (isEmpty) {
+	osg::ref_ptr<osg::Node> node = createShape();
+	root->addChild(node.get());
+	_mViewer->setSceneData(NULL);
+	//computeNodePosition(node.get(), _mViewer->getCamera(), false);
+	//if (isEmpty) {
 		//优化场景数据
 		osgUtil::Optimizer optimizer;
 		optimizer.optimize(root.get());
 		_mViewer->setSceneData(root);
 		_mViewer->realize();
-	}
+	//}
 	this->update();
 }
 void QtOSGWidget::onGlider() {
@@ -343,35 +364,173 @@ void QtOSGWidget::onGlider() {
 		isEmpty = true;
 		root = new osg::Group;
 	}
-	root->addChild(createOSGGlider().get());
-	if (isEmpty) {
+	osg::ref_ptr<osg::Node> node = createOSGGlider();
+	root->addChild(node.get());
+	_mViewer->setSceneData(NULL);
+	//computeNodePosition(node.get(), _mViewer->getCamera(), false);
+	//if (isEmpty) {
 		//优化场景数据
 		osgUtil::Optimizer optimizer;
 		optimizer.optimize(root.get());
 		_mViewer->setSceneData(root);
 		_mViewer->realize();
-	}
+	//}
 	this->update();
 }
 //class DelAllNodeVistor :public osg::NodeVisitor {
 //public:
-//	DelAllNodeVistor() :osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN) {}
-//	virtual void apply(osg::Node& node) {
-//		
+//	DelAllNodeVistor(osg::Group* node) :osg::NodeVisitor(osg::NodeVisitor::TRAVERSE_ALL_CHILDREN) {
+//		root = node;
 //	}
+//	/*virtual void apply(osg::Group& node) {
+//		std::string name = node.getName();
+//		std::cout <<"Group : " <<name << std::endl;
+//	}*/
+//	virtual void apply(osg::Node& node) {
+//		if (node.getName() == "root") {
+//			traverse(node);
+//		}
+//		else {
+//			std::string name = node.getName();
+//			std::cout << "Node : " << name << std::endl;
+//			root->removeChild(&node);
+//		}
+//	}
+//	/*virtual void apply(osg::Geode& node) {
+//		std::string name = node.getName();
+//		std::cout << "Geode : " << name << std::endl;
+//		traverse(node);
+//	}
+//	virtual void apply(osg::Geometry& geometry) {
+//		std::string name = geometry.getName();
+//		std::cout << "Geometry : " << name << std::endl;
+//		traverse(geometry);
+//	}*/
+//private:
+//	osg::ref_ptr<osg::Group> root;
 //};
 void QtOSGWidget::onClear() {
 	osg::ref_ptr<osg::Group> root = dynamic_cast<osg::Group*>(_mViewer->getSceneData());
 	if (root.valid()) {
+		/*DelAllNodeVistor vistor(root.get());
+		root->accept(vistor);*/
 		int childCount = root->getNumChildren();
 		for (int i = childCount - 1; i >= 0; --i) {
 			root->removeChild(i);
 		}
 	}
+	//_mViewer->realize();
 	//root->accept(DelAllNodeVistor());
 	this->update();
 }
+void QtOSGWidget::onRecHeightRamp(int axis, QColor beginColor, QColor endColor) {
+	osg::Geode* cloudGeode = dynamic_cast<osg::Geode*>(getChildNode("CloudPoints"));
+	if (cloudGeode == nullptr) {
+		return;
+	}
+	osg::Vec3 direct;
+	switch (axis)
+	{
+	case 1:
+		direct = osg::X_AXIS;
+		break;
+	case 2:
+		direct = osg::Y_AXIS;
+		break;
+	case 3:
+		direct = osg::Z_AXIS;
+		break;
+	}
+	qreal r, g, b;
+	beginColor.getRgbF(&r, &g, &b);
+	//开始颜色
+	osg::Vec4 bcolor(r, g, b, 1.0f);
+	endColor.getRgbF(&r, &g, &b);
+	//结束颜色
+	osg::Vec4 ecolor(r, g, b, 1.0f);
+	ChangedCloudColor(cloudGeode, direct, bcolor, ecolor);
+}
+void QtOSGWidget::computeNodePosition(osg::Node* node, const osg::Camera *camera, bool useBoundingBox) {
+	/*_mViewer->getCameraManipulator()->computeHomePosition(camera);
+	return;*/
+		osg::BoundingSphere boundingSphere;
 
+		//OSG_INFO << " CameraManipulator::computeHomePosition(" << camera << ", " << useBoundingBox << ")" << std::endl;
+
+		if (useBoundingBox)
+		{
+			// compute bounding box
+			// (bounding box computes model center more precisely than bounding sphere)
+			osg::ComputeBoundsVisitor cbVisitor;
+			node->accept(cbVisitor);
+			osg::BoundingBox &bb = cbVisitor.getBoundingBox();
+
+			if (bb.valid()) boundingSphere.expandBy(bb);
+			else boundingSphere = node->getBound();
+		}
+		else
+		{
+			// compute bounding sphere
+			boundingSphere = node->getBound();
+		}
+
+		/*OSG_INFO << "    boundingSphere.center() = (" << boundingSphere.center() << ")" << std::endl;
+		OSG_INFO << "    boundingSphere.radius() = " << boundingSphere.radius() << std::endl;*/
+
+		double radius = osg::maximum(double(boundingSphere.radius()), 1e-6);
+
+		// set dist to default
+		double dist = 3.5f * radius;
+
+		if (camera)
+		{
+
+			// try to compute dist from frustum
+			double left, right, bottom, top, zNear, zFar;
+			if (camera->getProjectionMatrixAsFrustum(left, right, bottom, top, zNear, zFar))
+			{
+				double vertical2 = fabs(right - left) / zNear / 2.;
+				double horizontal2 = fabs(top - bottom) / zNear / 2.;
+				double dim = horizontal2 < vertical2 ? horizontal2 : vertical2;
+				double viewAngle = atan2(dim, 1.);
+				dist = radius / sin(viewAngle);
+			}
+			else
+			{
+				// try to compute dist from ortho
+				if (camera->getProjectionMatrixAsOrtho(left, right, bottom, top, zNear, zFar))
+				{
+					dist = fabs(zFar - zNear) / 2.;
+				}
+			}
+		}
+		osg::ref_ptr<osg::Geode> geode = new osg::Geode();
+		osg::ComputeBoundsVisitor boundVisitor;
+		node->accept(boundVisitor);
+		osg::BoundingBox boundingBox = boundVisitor.getBoundingBox();
+		float length = boundingBox.xMax() - boundingBox.xMin();
+		float width = boundingBox.yMax() - boundingBox.yMin();
+		float height = boundingBox.zMax() - boundingBox.zMin();
+		osg::Vec3 direct;
+		if (length <= width && length <= height) {
+			direct = osg::X_AXIS;
+		}
+		else if (width <= length && width <= height) {
+			direct = osg::Y_AXIS;
+		}
+		else {
+			direct = osg::Z_AXIS;
+		}
+		osg::Vec3f cesh = boundingSphere.center();
+		_mViewer->getCamera()->setViewMatrixAsLookAt(boundingSphere.center() + direct* dist,
+			boundingSphere.center(),
+			osg::Vec3d(0.0f, 0.0f, 1.0f)
+			);
+		/*_mViewer->getCameraManipulator()->setHomePosition(boundingSphere.center() + direct* dist,
+			boundingSphere.center(),
+			osg::Vec3d(0.0f, 0.0f, 1.0f),
+			true);*/
+}
 /**
 度点云文件
 */
@@ -431,6 +590,9 @@ osg::ref_ptr<osg::Vec3Array> QtOSGWidget::ReadModelFile(std::string filePath) {
 //创建四边形
 osg::ref_ptr<osg::Node> QtOSGWidget::createQuad() {
 	osg::ref_ptr<osg::Geode> geode = new osg::Geode();
+	QByteArray barr = QString("四边形").toLocal8Bit();
+	char* bdata = barr.data();
+	geode->setName(bdata);
 	osg::ref_ptr<osg::Geometry> geom = new osg::Geometry();
 	//创建顶点数组，注意顺序逆时针
 	osg::ref_ptr<osg::Vec3Array> v = new osg::Vec3Array();
@@ -488,11 +650,16 @@ osg::ref_ptr<osg::Node> QtOSGWidget::createCylinder() {
 	//构造测试圆柱
 	osg::ref_ptr<osg::Cylinder> cylinder = new osg::Cylinder(osg::Vec3(0.f, 0.f, 0.f), 0.25f, 0.5f);
 	osg::ref_ptr<osg::ShapeDrawable> sd = new osg::ShapeDrawable(cylinder);
-	sd->setName("zidingyi1");
+	QByteArray barr = QString("zidingyi1").toLocal8Bit();
+	char* bdata = barr.data();
+	sd->setName(barr);
 	sd->setColor(osg::Vec4(1.0, 0.0, 0.0, 1.0));
 	//叶子节点
 	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
 	geode->addDrawable(sd);
+	barr = QString("圆柱").toLocal8Bit();
+	bdata = barr.data();
+	geode->setName(bdata);
 	//osg::ref_ptr<osg::StateSet> stateSet = geode->getOrCreateStateSet();
 	//osg::ref_ptr<osg::Material> material = new osg::Material;
 	//material->setColorMode(osg::Material::AMBIENT_AND_DIFFUSE);
@@ -500,12 +667,18 @@ osg::ref_ptr<osg::Node> QtOSGWidget::createCylinder() {
 	return geode;
 }
 osg::ref_ptr<osg::Node> QtOSGWidget::createOSGGlider() {
-	return osgDB::readRefNodeFile("glider.osg");
+	osg::ref_ptr<osg::Node> node = osgDB::readRefNodeFile("glider.osg");
+	QByteArray barr = QString("飞机").toLocal8Bit();
+	char* bdata = barr.data();
+	node->setName(bdata);
+	return node.get();
 }
 osg::ref_ptr<osg::Node> QtOSGWidget::createCloud() {
 	osg::ref_ptr<osg::Geode> geode = new osg::Geode();
 	//std::string name = geode->getName();
-	geode->setName("CloudPoints");
+	QByteArray barr = QString("CloudPoints").toLocal8Bit();
+	char* bdata = barr.data();
+	geode->setName(barr);
 	osg::ref_ptr<osg::Geometry> geom = new osg::Geometry();
 	//创建顶点数组，注意顺序逆时针
 	osg::ref_ptr<osg::Vec3Array> v = ReadModelFile("model.txt");
@@ -599,6 +772,9 @@ osg::ref_ptr<osg::Node> QtOSGWidget::createCloud() {
 //}
 osg::ref_ptr<osg::Node> QtOSGWidget::createShape() {
 	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+	QByteArray barr = QString("预定义几何体").toLocal8Bit();
+	char* bdata = barr.data();
+	geode->setName(bdata);
 	float radius = 0.8f;
 	float height = 1.0f;
 	//精细程度
@@ -705,8 +881,7 @@ void QtOSGWidget::ChangedCloudColor(osg::Geode* geode, osg::Vec3 axis, osg::Vec4
 //绘制坐标轴
 osg::ref_ptr<osg::Node> QtOSGWidget::createCoordinate() {
 	//创建保存几何信息的对象
-	osg::ref_ptr<osg::Geometry> geom = new osg::Geometry();
-
+	osg::ref_ptr<osg::Geometry> geom = new osg::Geometry();	
 	//创建四个顶点
 	osg::ref_ptr<osg::Vec3Array> v = new osg::Vec3Array();
 	v->push_back(osg::Vec3(0.0f, 0.0f, 0.0f));
@@ -739,7 +914,9 @@ osg::ref_ptr<osg::Node> QtOSGWidget::createCoordinate() {
 	geode->getOrCreateStateSet()->setMode(GL_LIGHTING,
 		osg::StateAttribute::OFF);
 	geode->addDrawable(geom.get());
-	geode->setName("CustomCoordinate");
+	QByteArray barr = QString("CustomCoordinate").toLocal8Bit();
+	char* bdata = barr.data();
+	geode->setName(bdata);
 
 	/*osg::ref_ptr<osg::Group> newroot = new osg::Group();
 	newroot->addChild(geode.get());*/

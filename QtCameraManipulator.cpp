@@ -107,9 +107,26 @@ void QtCameraManipulator::computeHomePosition(const osg::Camera *camera, bool us
 				}
 			}
 		}
+		osg::ref_ptr<osg::Geode> geode = new osg::Geode();
+		osg::ComputeBoundsVisitor boundVisitor;
+		getNode()->accept(boundVisitor);
+		osg::BoundingBox boundingBox = boundVisitor.getBoundingBox();
+		float length = boundingBox.xMax() - boundingBox.xMin();
+		float width = boundingBox.yMax() - boundingBox.yMin();
+		float height = boundingBox.zMax() - boundingBox.zMin();
+		osg::Vec3 direct;
+		if (length <= width && length <= height) {
+			direct = osg::X_AXIS;
+		}
+		else if (width <= length && width <= height) {
+			direct = osg::Y_AXIS;
+		}
+		else {
+			direct = osg::Z_AXIS;
+		}
 
 		// set home position
-		setHomePosition(boundingSphere.center() + osg::Vec3d(0.0, 0.0, dist),
+		setHomePosition(boundingSphere.center() + direct* dist,
 			boundingSphere.center(),
 			osg::Vec3d(0.0f, 0.0f, 1.0f),
 			_autoComputeHomePosition);
