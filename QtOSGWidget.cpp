@@ -58,10 +58,12 @@ void QtOSGWidget::initializeGL() {
 	osg::ref_ptr<QtCameraManipulator> manipulator = new QtCameraManipulator;
 	manipulator->setAllowThrow(false);
 	_mViewer->setCameraManipulator(manipulator.get());
-	//_mViewer->addEventHandler(new osgViewer::StatsHandler);
+	//该事件可控制状态如W键：显示模型网格，S键显示帧速
+	_mViewer->addEventHandler(new osgViewer::StatsHandler);
 	//_mViewer->addEventHandler(new osgViewer::ThreadingHandler());
 	//_mViewer->addEventHandler(new osgViewer::HelpHandler);
-	//_mViewer->addEventHandler(new osgGA::StateSetManipulator(_mViewer->getCamera()->getOrCreateStateSet()));
+	//该事件可触发L键控制灯光
+	_mViewer->addEventHandler(new osgGA::StateSetManipulator(_mViewer->getCamera()->getOrCreateStateSet()));
 	//_mViewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
 	_mViewer->setThreadingModel(osgViewer::ViewerBase::SingleThreaded);
 	_mViewer->realize();
@@ -78,8 +80,8 @@ void QtOSGWidget::initializeGL() {
 	//optimizer.optimize(root.get());
 	//_mViewer->setSceneData(root);
 	//_mViewer->realize();
-	root->addChild(createQuad().get());
-	//root->addChild(createCloud().get());
+	//root->addChild(createQuad().get());
+	root->addChild(createCloud().get());
 	//root->addChild(createCoordinate().get());
 	//root->addChild(createShape().get());
 
@@ -256,6 +258,27 @@ void QtOSGWidget::keyPressEvent(QKeyEvent *event) {
 		}
 	}
 		break;
+	case Qt::Key_S:
+	{
+		getEventQueue()->keyPress(osgGA::GUIEventAdapter::KEY_S);
+	}
+	break;
+	case Qt::Key_L:
+	{
+		getEventQueue()->keyPress(osgGA::GUIEventAdapter::KEY_L);
+	}
+	break;
+	case Qt::Key_W:
+	{
+		getEventQueue()->keyPress(osgGA::GUIEventAdapter::KEY_W);
+	}
+	break;
+	case Qt::Key_Space:
+	{
+		//返回Home键，
+		getEventQueue()->keyPress(osgGA::GUIEventAdapter::KEY_Space);
+	}
+	break;
 	default:
 		break;
 	}
@@ -266,7 +289,10 @@ void QtOSGWidget::keyReleaseEvent(QKeyEvent *event) {
 
 	QOpenGLWidget::keyReleaseEvent(event);
 }
+//点云测量
+void QtOSGWidget::onSelCloudPoint(QtOSGWidget::MeauseCloud meause) {
 
+}
 void QtOSGWidget::onCylinder() {
 	osg::ref_ptr<osg::Group> pGroup = _mViewer->getSceneData()->asGroup();
 	osg::ref_ptr<osg::Group> root = dynamic_cast<osg::Group*>(_mViewer->getSceneData());
@@ -680,6 +706,7 @@ osg::ref_ptr<osg::Node> QtOSGWidget::createCloud() {
 	char* bdata = barr.data();
 	geode->setName(barr);
 	osg::ref_ptr<osg::Geometry> geom = new osg::Geometry();
+	//osg::ref_ptr<osg::DrawPixels> geom = new osg::DrawPixels;
 	//创建顶点数组，注意顺序逆时针
 	osg::ref_ptr<osg::Vec3Array> v = ReadModelFile("model.txt");
 	//设置顶点数据

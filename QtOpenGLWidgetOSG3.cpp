@@ -30,6 +30,31 @@ QtOpenGLWidgetOSG3::QtOpenGLWidgetOSG3(QWidget *parent)
 	connect(this, SIGNAL(sendHeightRamp(int, QColor, QColor)), this->ui.openGLWidget, SLOT(onRecHeightRamp(int, QColor, QColor)));
 	connect(this, SIGNAL(sendHeightRamp(int, QColor, QColor)), this, SLOT(onRecHeightRamp(int, QColor, QColor)));
 	//this->ui.groupBox_2->setVisible(false);
+
+	connect(this->ui.radSelPoint, SIGNAL(pressed()), this, SLOT(onSelPoint()));
+	connect(this->ui.radMeasure, SIGNAL(pressed()), this, SLOT(onSelPoint()));
+	connect(this->ui.btnReset, SIGNAL(clicked()), this, SLOT(onResetSelPoint()));
+	connect(this->ui.btnCancel, SIGNAL(clicked()), this, SLOT(onCancelSelPoint()));
+
+	connect(this, SIGNAL(selCloudPoint(QtOSGWidget::MeauseCloud)), this->ui.openGLWidget, SLOT(onSelCloudPoint(QtOSGWidget::MeauseCloud)));
+}
+void QtOpenGLWidgetOSG3::onSelPoint() {
+	if (this->ui.radSelPoint->isChecked()) {
+		emit selCloudPoint(QtOSGWidget::MeauseCloud::ONEPOINT);
+	}
+	else if (this->ui.radMeasure->isChecked()) {
+		emit selCloudPoint(QtOSGWidget::MeauseCloud::TWOMEAUSE);
+	}
+}
+void QtOpenGLWidgetOSG3::onResetSelPoint() {
+	this->ui.radSelPoint->setChecked(false);
+	this->ui.radMeasure->setChecked(false);
+	emit selCloudPoint(QtOSGWidget::MeauseCloud::RESET);
+}
+void QtOpenGLWidgetOSG3::onCancelSelPoint() {
+	this->ui.radSelPoint->setChecked(false);
+	this->ui.radMeasure->setChecked(false);
+	emit selCloudPoint(QtOSGWidget::MeauseCloud::NONE);
 }
 void QtOpenGLWidgetOSG3::onShowHeightRamp() {
 

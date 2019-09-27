@@ -7,6 +7,7 @@
 
 #include <osg/ShapeDrawable>
 #include <osg/Material>
+#include <osg/DrawPixels>
 #include <osgGA/TrackballManipulator>
 #include <osgGA/FlightManipulator>
 #include <osgGA/StateSetManipulator>
@@ -26,6 +27,16 @@ class QtOSGWidget : public QOpenGLWidget
 	Q_OBJECT
 
 public:
+	/**
+		点云测量
+	*/
+	enum MeauseCloud
+	{
+		NONE,//无
+		RESET,//重置
+		ONEPOINT,//测量一点
+		TWOMEAUSE//测量两点
+	};
 	QtOSGWidget(QWidget *parent = nullptr);
 	~QtOSGWidget();
 	/**
@@ -86,6 +97,8 @@ public slots:
 	void onGlider();
 	void onClear();
 	void onRecHeightRamp(int axis, QColor beginColor, QColor endColor);
+
+	void onSelCloudPoint(QtOSGWidget::MeauseCloud meause);
 private:
 	osg::ref_ptr<osgViewer::GraphicsWindowEmbedded> _mGraphicsWindow;
 	osg::ref_ptr<osgViewer::Viewer> _mViewer;
