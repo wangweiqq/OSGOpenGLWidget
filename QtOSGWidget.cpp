@@ -428,7 +428,7 @@ void QtOSGWidget::onRecHeightRamp(int axis, QColor beginColor, QColor endColor) 
 	if (cloudGeode == nullptr) {
 		return;
 	}
-	osg::Vec3 direct;
+	osg::Vec3 direct = osg::X_AXIS;
 	switch (axis)
 	{
 	case 1:
@@ -511,7 +511,7 @@ void QtOSGWidget::computeNodePosition(osg::Node* node, const osg::Camera *camera
 		float length = boundingBox.xMax() - boundingBox.xMin();
 		float width = boundingBox.yMax() - boundingBox.yMin();
 		float height = boundingBox.zMax() - boundingBox.zMin();
-		osg::Vec3 direct;
+		osg::Vec3 direct = osg::X_AXIS;
 		if (length <= width && length <= height) {
 			direct = osg::X_AXIS;
 		}
