@@ -13,13 +13,13 @@
 #pragma comment(lib,"osgUtil.lib")
 #endif
 
-#include "QtOSGWidget.h"
+#include "OSGWidget.h"
 /**
 1、创建图形上下文和图形窗口
 2、将图形上下文附加到相机
 3、将相机设置为主视图
 */
-QtOSGWidget::QtOSGWidget(QWidget *parent)
+OSGWidget::OSGWidget(QWidget *parent)
 	: QOpenGLWidget(parent),
 	_mViewer(new osgViewer::Viewer),
 	_mGraphicsWindow(new osgViewer::GraphicsWindowEmbedded(this->x(),this->y(),this->width(),this->height()))
@@ -29,13 +29,13 @@ QtOSGWidget::QtOSGWidget(QWidget *parent)
 	this->setMinimumSize(100, 100);
 }
 
-QtOSGWidget::~QtOSGWidget()
+OSGWidget::~OSGWidget()
 {
 }
 /**
 设置OpenGL资源和状态
 */
-void QtOSGWidget::initializeGL() {
+void OSGWidget::initializeGL() {
 	//创建一个主摄像头并附加图形上下文
 	//osg::ref_ptr<osg::Camera> camera = new osg::Camera();
 	//camera->setViewport(0, 0, this->width(), this->height());
@@ -55,7 +55,7 @@ void QtOSGWidget::initializeGL() {
 
 	/*osg::ref_ptr<osgGA::TrackballManipulator> manipulator = new osgGA::TrackballManipulator();
 	osg::ref_ptr<osgGA::FlightManipulator> manipulator2 = new osgGA::FlightManipulator;*/
-	osg::ref_ptr<QtCameraManipulator> manipulator = new QtCameraManipulator;
+	osg::ref_ptr<OSGCameraManipulator> manipulator = new OSGCameraManipulator;
 	manipulator->setAllowThrow(false);
 	_mViewer->setCameraManipulator(manipulator.get());
 	//该事件可控制状态如W键：显示模型网格，S键显示帧速
@@ -81,7 +81,7 @@ void QtOSGWidget::initializeGL() {
 	//_mViewer->setSceneData(root);
 	//_mViewer->realize();
 	//root->addChild(createQuad().get());
-	root->addChild(createCloud().get());
+	//root->addChild(createCloud().get());
 	//root->addChild(createCoordinate().get());
 	//root->addChild(createShape().get());
 
@@ -103,13 +103,13 @@ void QtOSGWidget::initializeGL() {
 /**
 在场景更新时渲染OpenGL
 */
-void QtOSGWidget::paintGL() {
+void OSGWidget::paintGL() {
 	_mViewer->frame();
 }
 /**
 设置OpenGL视口，投影等
 */
-void QtOSGWidget::resizeGL(int w, int h) {
+void OSGWidget::resizeGL(int w, int h) {
 	this->getEventQueue()->windowResize(this->x(), this->y(), w, h);
 	_mGraphicsWindow->resized(this->x(), this->y(), w, h);
 	osg::Camera* camera = _mViewer->getCamera();
@@ -121,10 +121,10 @@ void QtOSGWidget::resizeGL(int w, int h) {
 /**
 获取OSG事件队列
 */
-osgGA::EventQueue* QtOSGWidget::getEventQueue()const {
+osgGA::EventQueue* OSGWidget::getEventQueue()const {
 	return _mGraphicsWindow->getEventQueue();
 };
-void QtOSGWidget::mouseDoubleClickEvent(QMouseEvent *event) {
+void OSGWidget::mouseDoubleClickEvent(QMouseEvent *event) {
 	setKeyboardModifiers(event);
 	int button = 0;
 	switch (event->button())
@@ -142,12 +142,12 @@ void QtOSGWidget::mouseDoubleClickEvent(QMouseEvent *event) {
 	getEventQueue()->mouseDoubleButtonPress(event->x(), event->y(), button);
 	QOpenGLWidget::mouseDoubleClickEvent(event);
 }
-void QtOSGWidget::mouseMoveEvent(QMouseEvent *event) {
+void OSGWidget::mouseMoveEvent(QMouseEvent *event) {
 	setKeyboardModifiers(event);
 	getEventQueue()->mouseMotion(event->x(), event->y());
 	QOpenGLWidget::mouseMoveEvent(event);
 }
-void QtOSGWidget::mousePressEvent(QMouseEvent *event) {
+void OSGWidget::mousePressEvent(QMouseEvent *event) {
 	setKeyboardModifiers(event);
 	int button = 0;
 	switch (event->button())
@@ -165,7 +165,7 @@ void QtOSGWidget::mousePressEvent(QMouseEvent *event) {
 	getEventQueue()->mouseButtonPress(event->x(), event->y(), button);
 	QOpenGLWidget::mousePressEvent(event);
 }
-void QtOSGWidget::mouseReleaseEvent(QMouseEvent *event) {
+void OSGWidget::mouseReleaseEvent(QMouseEvent *event) {
 	setKeyboardModifiers(event);
 	int button = 0;
 	switch (event->button())
@@ -183,14 +183,14 @@ void QtOSGWidget::mouseReleaseEvent(QMouseEvent *event) {
 	getEventQueue()->mouseButtonRelease(event->x(), event->y(), button);
 	QOpenGLWidget::mouseReleaseEvent(event);
 }
-void QtOSGWidget::wheelEvent(QWheelEvent *event) {
+void OSGWidget::wheelEvent(QWheelEvent *event) {
 	setKeyboardModifiers(event);
 	getEventQueue()->mouseScroll(event->orientation() == Qt::Vertical ?
 		(event->delta() > 0 ? osgGA::GUIEventAdapter::SCROLL_UP : osgGA::GUIEventAdapter::SCROLL_DOWN) :
 		(event->delta() > 0 ? osgGA::GUIEventAdapter::SCROLL_LEFT : osgGA::GUIEventAdapter::SCROLL_RIGHT));
 	QOpenGLWidget::wheelEvent(event);
 }
-bool QtOSGWidget::event(QEvent *event) {
+bool OSGWidget::event(QEvent *event) {
 	bool handled = QOpenGLWidget::event(event);
 	switch (event->type())
 	{
@@ -208,7 +208,7 @@ bool QtOSGWidget::event(QEvent *event) {
 	}
 	return handled;
 }
-void QtOSGWidget::setKeyboardModifiers(QInputEvent* event) {
+void OSGWidget::setKeyboardModifiers(QInputEvent* event) {
 	int modkey = event->modifiers() & (Qt::ShiftModifier | Qt::AltModifier | Qt::ControlModifier);
 	unsigned mask = 0;
 	if (modkey & Qt::ShiftModifier) {
@@ -222,7 +222,7 @@ void QtOSGWidget::setKeyboardModifiers(QInputEvent* event) {
 	}
 	getEventQueue()->getCurrentEventState()->setModKeyMask(mask);
 }
-void QtOSGWidget::keyPressEvent(QKeyEvent *event) {
+void OSGWidget::keyPressEvent(QKeyEvent *event) {
 	setKeyboardModifiers(event);
 	//QByteArray KeyData = event->text().toLocal8Bit();
 	/*const char* cKey = KeyData.data();
@@ -284,16 +284,52 @@ void QtOSGWidget::keyPressEvent(QKeyEvent *event) {
 	}
 	QOpenGLWidget::keyPressEvent(event);
 }
-void QtOSGWidget::keyReleaseEvent(QKeyEvent *event) {
+void OSGWidget::keyReleaseEvent(QKeyEvent *event) {
 	setKeyboardModifiers(event);
 
 	QOpenGLWidget::keyReleaseEvent(event);
 }
 //点云测量
-void QtOSGWidget::onSelCloudPoint(QtOSGWidget::MeauseCloud meause) {
-
+void OSGWidget::onSelCloudPoint(OSGWidget::MeauseCloud meause) {
+	switch (meause)
+	{
+	case OSGWidget::RESET:
+	{
+		if (!_mPickHandler.valid()) {
+			_mPickHandler = new OSGPickHandler;
+			_mViewer->addEventHandler(_mPickHandler);
+		}
+		_mPickHandler->Reset();
+	}
+		break;
+	case OSGWidget::ONEPOINT:
+	{
+		if (!_mPickHandler.valid()) {
+			_mPickHandler = new OSGPickHandler;
+			_mViewer->addEventHandler(_mPickHandler);
+		}
+		_mPickHandler->OnePoint();
+	}
+		break;
+	case OSGWidget::TWOMEAUSE:
+	{
+		if (!_mPickHandler.valid()) {
+			_mPickHandler = new OSGPickHandler;
+			_mViewer->addEventHandler(_mPickHandler);
+		}
+		_mPickHandler->TwoMeause();
+	}
+		break;
+	case OSGWidget::NONE:
+	default:
+		if (_mPickHandler.valid()) {
+			_mViewer->removeEventHandler(_mPickHandler);
+			_mPickHandler.release();
+		}
+		break;
+	}
 }
-void QtOSGWidget::onCylinder() {
+void OSGWidget::onCylinder() {
 	osg::ref_ptr<osg::Group> pGroup = _mViewer->getSceneData()->asGroup();
 	osg::ref_ptr<osg::Group> root = dynamic_cast<osg::Group*>(_mViewer->getSceneData());
 	bool isEmpty = false;
@@ -314,7 +350,7 @@ void QtOSGWidget::onCylinder() {
 	//}
 	this->update();
 }
-void QtOSGWidget::onQuad() {
+void OSGWidget::onQuad() {
 	osg::ref_ptr<osg::Group> root = dynamic_cast<osg::Group*>(_mViewer->getSceneData());
 	bool isEmpty = false;
 	if (!root.valid()) {
@@ -334,7 +370,7 @@ void QtOSGWidget::onQuad() {
 	//}
 	this->update();
 }
-void QtOSGWidget::onCloud() {
+void OSGWidget::onCloud() {
 	osg::ref_ptr<osg::Group> root = dynamic_cast<osg::Group*>(_mViewer->getSceneData());
 	bool isEmpty = false;
 	if (!root.valid()) {
@@ -343,12 +379,15 @@ void QtOSGWidget::onCloud() {
 	}
 	osg::ref_ptr<osg::Node> node = createCloud();
 	root->addChild(node.get());
-	//_mViewer->setSceneData(NULL);
-	_mViewer->setCameraManipulator(NULL);
-	//computeNodePosition(node.get(), _mViewer->getCamera(), false);
-	osg::ref_ptr<QtCameraManipulator> manipulator = new QtCameraManipulator;
-	manipulator->setAllowThrow(false);
-	_mViewer->setCameraManipulator(manipulator.get());
+	osg::BoundingSphere bound = node->getBound();
+	std::cout<<"x = "<<bound.center().x()<<",y = "<< bound.center().y()<<",z = "<< bound.center().z()<<", R  = "<< bound.radius();
+	_mViewer->setSceneData(NULL);
+	_mViewer->setSceneData(root);
+	//_mViewer->setCameraManipulator(NULL);
+	////computeNodePosition(node.get(), _mViewer->getCamera(), false);
+	//osg::ref_ptr<OSGCameraManipulator> manipulator = new OSGCameraManipulator;
+	//manipulator->setAllowThrow(false);
+	//_mViewer->setCameraManipulator(manipulator.get());
 	//if (isEmpty) {
 		//优化场景数据
 		/*osgUtil::Optimizer optimizer;
@@ -363,7 +402,7 @@ void QtOSGWidget::onCloud() {
 		);*/
 	this->update();
 }
-void QtOSGWidget::onShape() {
+void OSGWidget::onShape() {
 	osg::ref_ptr<osg::Group> root = dynamic_cast<osg::Group*>(_mViewer->getSceneData());
 	bool isEmpty = false;
 	if (!root.valid()) {
@@ -383,7 +422,7 @@ void QtOSGWidget::onShape() {
 	//}
 	this->update();
 }
-void QtOSGWidget::onGlider() {
+void OSGWidget::onGlider() {
 	osg::ref_ptr<osg::Group> root = dynamic_cast<osg::Group*>(_mViewer->getSceneData());
 	bool isEmpty = false;
 	if (!root.valid()) {
@@ -435,7 +474,7 @@ void QtOSGWidget::onGlider() {
 //private:
 //	osg::ref_ptr<osg::Group> root;
 //};
-void QtOSGWidget::onClear() {
+void OSGWidget::onClear() {
 	osg::ref_ptr<osg::Group> root = dynamic_cast<osg::Group*>(_mViewer->getSceneData());
 	if (root.valid()) {
 		/*DelAllNodeVistor vistor(root.get());
@@ -449,7 +488,7 @@ void QtOSGWidget::onClear() {
 	//root->accept(DelAllNodeVistor());
 	this->update();
 }
-void QtOSGWidget::onRecHeightRamp(int axis, QColor beginColor, QColor endColor) {
+void OSGWidget::onRecHeightRamp(int axis, QColor beginColor, QColor endColor) {
 	osg::Geode* cloudGeode = dynamic_cast<osg::Geode*>(getChildNode("CloudPoints"));
 	if (cloudGeode == nullptr) {
 		return;
@@ -476,7 +515,7 @@ void QtOSGWidget::onRecHeightRamp(int axis, QColor beginColor, QColor endColor) 
 	osg::Vec4 ecolor(r, g, b, 1.0f);
 	ChangedCloudColor(cloudGeode, direct, bcolor, ecolor);
 }
-void QtOSGWidget::computeNodePosition(osg::Node* node, const osg::Camera *camera, bool useBoundingBox) {
+void OSGWidget::computeNodePosition(osg::Node* node, const osg::Camera *camera, bool useBoundingBox) {
 	/*_mViewer->getCameraManipulator()->computeHomePosition(camera);
 	return;*/
 		osg::BoundingSphere boundingSphere;
@@ -561,7 +600,7 @@ void QtOSGWidget::computeNodePosition(osg::Node* node, const osg::Camera *camera
 度点云文件
 */
 float minX, maxX, minY, maxY, minZ, maxZ;
-osg::ref_ptr<osg::Vec3Array> QtOSGWidget::ReadModelFile(std::string filePath) {
+osg::ref_ptr<osg::Vec3Array> OSGWidget::ReadModelFile(std::string filePath) {
 	osg::ref_ptr<osg::Vec3Array> list = new osg::Vec3Array;
 	FILE* pfData = fopen(filePath.c_str(), "r");
 	if (pfData == NULL) {
@@ -614,16 +653,26 @@ osg::ref_ptr<osg::Vec3Array> QtOSGWidget::ReadModelFile(std::string filePath) {
 	return list;
 }
 //创建四边形
-osg::ref_ptr<osg::Node> QtOSGWidget::createQuad() {
+osg::ref_ptr<osg::Node> OSGWidget::createQuad() {
 	osg::ref_ptr<osg::Geode> geode = new osg::Geode();
 	QByteArray barr = QString("四边形").toLocal8Bit();
 	char* bdata = barr.data();
 	geode->setName(bdata);
 	osg::ref_ptr<osg::Geometry> geom = new osg::Geometry();
+
+
+	osg::ref_ptr<osg::StateSet> stateSet = geom->getOrCreateStateSet();
+	osg::ref_ptr<osg::Point> pointSize = new osg::Point;
+	pointSize->setSize(10.0);
+	stateSet->setAttribute(pointSize, osg::StateAttribute::OFF);
+	osg::PointSprite *sprite = new osg::PointSprite();
+	stateSet->setTextureAttributeAndModes(0, sprite, osg::StateAttribute::ON);
+
 	//创建顶点数组，注意顺序逆时针
 	osg::ref_ptr<osg::Vec3Array> v = new osg::Vec3Array();
-	v->push_back(osg::Vec3(0.0f, 0.0f, 0.0f));
+	v->push_back(osg::Vec3(0.0f, 0.0f, 0.0f));	
 	v->push_back(osg::Vec3(1.0f, 0.0f, 0.0f));
+	//stateSet->setAttribute(pointSize, osg::StateAttribute::OFF);
 	v->push_back(osg::Vec3(1.0f, 0.0f, 1.0f));
 	v->push_back(osg::Vec3(0.0f, 0.0f, 1.0f));
 	//设置顶点数据
@@ -659,7 +708,7 @@ osg::ref_ptr<osg::Node> QtOSGWidget::createQuad() {
 	//geom->setNormalBinding(osg::Geometry::BIND_OVERALL);
 
 	//添加图元，绘图基元为四边形
-	geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS, 0, 4));
+	geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::POINTS, 0, 4));
 	//geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::POINTS, 0, v->size()));
 
 	//将图元添加至叶子节点
@@ -672,7 +721,7 @@ osg::ref_ptr<osg::Node> QtOSGWidget::createQuad() {
 
 	return geode.get();
 }
-osg::ref_ptr<osg::Node> QtOSGWidget::createCylinder() {
+osg::ref_ptr<osg::Node> OSGWidget::createCylinder() {
 	//构造测试圆柱
 	osg::ref_ptr<osg::Cylinder> cylinder = new osg::Cylinder(osg::Vec3(0.f, 0.f, 0.f), 0.25f, 0.5f);
 	osg::ref_ptr<osg::ShapeDrawable> sd = new osg::ShapeDrawable(cylinder);
@@ -692,20 +741,21 @@ osg::ref_ptr<osg::Node> QtOSGWidget::createCylinder() {
 	//stateSet->setAttributeAndModes(material, osg::StateAttribute::ON);
 	return geode;
 }
-osg::ref_ptr<osg::Node> QtOSGWidget::createOSGGlider() {
+osg::ref_ptr<osg::Node> OSGWidget::createOSGGlider() {
 	osg::ref_ptr<osg::Node> node = osgDB::readRefNodeFile("glider.osg");
 	QByteArray barr = QString("飞机").toLocal8Bit();
 	char* bdata = barr.data();
 	node->setName(bdata);
 	return node.get();
 }
-osg::ref_ptr<osg::Node> QtOSGWidget::createCloud() {
+osg::ref_ptr<osg::Node> OSGWidget::createCloud() {
 	osg::ref_ptr<osg::Geode> geode = new osg::Geode();
 	//std::string name = geode->getName();
 	QByteArray barr = QString("CloudPoints").toLocal8Bit();
 	char* bdata = barr.data();
 	geode->setName(barr);
 	osg::ref_ptr<osg::Geometry> geom = new osg::Geometry();
+	geom->setName("cloudpointsgeometry");
 	//osg::ref_ptr<osg::DrawPixels> geom = new osg::DrawPixels;
 	//创建顶点数组，注意顺序逆时针
 	osg::ref_ptr<osg::Vec3Array> v = ReadModelFile("model.txt");
@@ -797,7 +847,7 @@ osg::ref_ptr<osg::Node> QtOSGWidget::createCloud() {
 //	//geode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
 //	return geode.get();
 //}
-osg::ref_ptr<osg::Node> QtOSGWidget::createShape() {
+osg::ref_ptr<osg::Node> OSGWidget::createShape() {
 	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
 	QByteArray barr = QString("预定义几何体").toLocal8Bit();
 	char* bdata = barr.data();
@@ -819,7 +869,7 @@ osg::ref_ptr<osg::Node> QtOSGWidget::createShape() {
 	geode->addDrawable(new osg::ShapeDrawable(new osg::Capsule(osg::Vec3(8.0f, 0.0f, 0.0f), radius, height), hints));
 	return geode.get();
 }
-osg::Node* QtOSGWidget::getChildNode(std::string name) {
+osg::Node* OSGWidget::getChildNode(std::string name) {
 	osg::ref_ptr<osg::Node> rNode = _mViewer->getSceneData();
 	if (rNode == nullptr) {
 		return nullptr;
@@ -840,7 +890,7 @@ osg::Node* QtOSGWidget::getChildNode(std::string name) {
 	}
 	return nullptr;
 }
-void QtOSGWidget::ChangedCloudColor(osg::Geode* geode, osg::Vec3 axis, osg::Vec4 begColor, osg::Vec4 endColor) {
+void OSGWidget::ChangedCloudColor(osg::Geode* geode, osg::Vec3 axis, osg::Vec4 begColor, osg::Vec4 endColor) {
 	//double diffFactor = 0.0;
 	/*if (axis == osg::X_AXIS) {
 	diffFactor = ;
@@ -906,7 +956,7 @@ void QtOSGWidget::ChangedCloudColor(osg::Geode* geode, osg::Vec3 axis, osg::Vec4
 	this->update();
 }
 //绘制坐标轴
-osg::ref_ptr<osg::Node> QtOSGWidget::createCoordinate() {
+osg::ref_ptr<osg::Node> OSGWidget::createCoordinate() {
 	//创建保存几何信息的对象
 	osg::ref_ptr<osg::Geometry> geom = new osg::Geometry();	
 	//创建四个顶点

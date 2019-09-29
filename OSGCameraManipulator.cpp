@@ -1,8 +1,8 @@
-#include "QtCameraManipulator.h"
+#include "OSGCameraManipulator.h"
 
 
 
-QtCameraManipulator::QtCameraManipulator():osgGA::TrackballManipulator()
+OSGCameraManipulator::OSGCameraManipulator():osgGA::TrackballManipulator()
 {
 	//_position = osg::Vec3(0, 0, 50);
 	////一般让相机绕x轴旋转90度，否则相机会从上空看模型（一般，一般会这样，看你模型怎么方了)  
@@ -12,13 +12,13 @@ QtCameraManipulator::QtCameraManipulator():osgGA::TrackballManipulator()
 }
 
 
-QtCameraManipulator::~QtCameraManipulator()
+OSGCameraManipulator::~OSGCameraManipulator()
 {
 }
 /**
 参照StandardManipulator::performMovement()算法
 */
-bool QtCameraManipulator::performMovement() {
+bool OSGCameraManipulator::performMovement() {
 	// return if less then two events have been added
 	if (_ga_t0.get() == NULL || _ga_t1.get() == NULL)
 		return false;
@@ -53,7 +53,7 @@ bool QtCameraManipulator::performMovement() {
 	}
 	return false;
 }
-void QtCameraManipulator::computeHomePosition(const osg::Camera *camera, bool useBoundingBox) {
+void OSGCameraManipulator::computeHomePosition(const osg::Camera *camera, bool useBoundingBox) {
 	if (getNode())
 	{
 		osg::BoundingSphere boundingSphere;

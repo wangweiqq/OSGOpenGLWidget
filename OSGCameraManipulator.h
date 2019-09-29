@@ -10,12 +10,12 @@
 /**
 自定义OSG相机漫游类
 */
-class QtCameraManipulator :
+class OSGCameraManipulator :
 	public osgGA::TrackballManipulator
 {
 public:
-	QtCameraManipulator();
-	virtual ~QtCameraManipulator();
+	OSGCameraManipulator();
+	virtual ~OSGCameraManipulator();
 //	///**
 //	//这个函数在从一个摄像机切换到另一个摄像机时调用，用来把上一个摄像机的视图矩阵传过来，
 //	//这样就可依此设定自己的初始位置了。

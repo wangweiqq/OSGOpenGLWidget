@@ -1,5 +1,5 @@
 #include "QtOpenGLWidgetOSG3.h"
-#include "QtOSGWidget.h"
+#include "OSGWidget.h"
 #include <QColorDialog>
 QtOpenGLWidgetOSG3::QtOpenGLWidgetOSG3(QWidget *parent)
 	: QMainWindow(parent)
@@ -31,30 +31,30 @@ QtOpenGLWidgetOSG3::QtOpenGLWidgetOSG3(QWidget *parent)
 	connect(this, SIGNAL(sendHeightRamp(int, QColor, QColor)), this, SLOT(onRecHeightRamp(int, QColor, QColor)));
 	//this->ui.groupBox_2->setVisible(false);
 
-	connect(this->ui.radSelPoint, SIGNAL(pressed()), this, SLOT(onSelPoint()));
-	connect(this->ui.radMeasure, SIGNAL(pressed()), this, SLOT(onSelPoint()));
+	connect(this->ui.radSelPoint, SIGNAL(toggled(bool )), this, SLOT(onSelPoint(bool)));
+	connect(this->ui.radMeasure, SIGNAL(toggled(bool )), this, SLOT(onSelPoint(bool)));
 	connect(this->ui.btnReset, SIGNAL(clicked()), this, SLOT(onResetSelPoint()));
 	connect(this->ui.btnCancel, SIGNAL(clicked()), this, SLOT(onCancelSelPoint()));
 
-	connect(this, SIGNAL(selCloudPoint(QtOSGWidget::MeauseCloud)), this->ui.openGLWidget, SLOT(onSelCloudPoint(QtOSGWidget::MeauseCloud)));
+	connect(this, SIGNAL(selCloudPoint(OSGWidget::MeauseCloud)), this->ui.openGLWidget, SLOT(onSelCloudPoint(OSGWidget::MeauseCloud)));
 }
-void QtOpenGLWidgetOSG3::onSelPoint() {
+void QtOpenGLWidgetOSG3::onSelPoint(bool checked) {
 	if (this->ui.radSelPoint->isChecked()) {
-		emit selCloudPoint(QtOSGWidget::MeauseCloud::ONEPOINT);
+		emit selCloudPoint(OSGWidget::MeauseCloud::ONEPOINT);
 	}
 	else if (this->ui.radMeasure->isChecked()) {
-		emit selCloudPoint(QtOSGWidget::MeauseCloud::TWOMEAUSE);
+		emit selCloudPoint(OSGWidget::MeauseCloud::TWOMEAUSE);
 	}
 }
 void QtOpenGLWidgetOSG3::onResetSelPoint() {
 	this->ui.radSelPoint->setChecked(false);
 	this->ui.radMeasure->setChecked(false);
-	emit selCloudPoint(QtOSGWidget::MeauseCloud::RESET);
+	emit selCloudPoint(OSGWidget::MeauseCloud::RESET);
 }
 void QtOpenGLWidgetOSG3::onCancelSelPoint() {
 	this->ui.radSelPoint->setChecked(false);
 	this->ui.radMeasure->setChecked(false);
-	emit selCloudPoint(QtOSGWidget::MeauseCloud::NONE);
+	emit selCloudPoint(OSGWidget::MeauseCloud::NONE);
 }
 void QtOpenGLWidgetOSG3::onShowHeightRamp() {
 

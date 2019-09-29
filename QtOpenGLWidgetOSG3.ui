@@ -312,7 +312,7 @@
      </layout>
     </item>
     <item>
-     <widget class="QtOSGWidget" name="openGLWidget"/>
+     <widget class="OSGWidget" name="openGLWidget"/>
     </item>
    </layout>
   </widget>
@@ -339,9 +339,9 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>QtOSGWidget</class>
+   <class>OSGWidget</class>
    <extends>QOpenGLWidget</extends>
-   <header>QtOSGWidget.h</header>
+   <header location="global">OSGWidget.h</header>
   </customwidget>
  </customwidgets>
  <resources>

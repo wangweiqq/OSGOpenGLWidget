@@ -113,10 +113,13 @@
     </QtRcc>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="LineIntersector.cpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="QtCameraManipulator.cpp" />
+    <ClCompile Include="OSGCameraManipulator.cpp" />
+    <ClCompile Include="OSGPickHandler.cpp" />
+    <ClCompile Include="PointIntersector.cpp" />
     <ClCompile Include="QtOpenGLWidgetOSG3.cpp" />
-    <ClCompile Include="QtOSGWidget.cpp" />
+    <ClCompile Include="OSGWidget.cpp" />
   </ItemGroup>
   <ItemGroup>
     <QtMoc Include="QtOpenGLWidgetOSG3.h" />
@@ -128,13 +131,16 @@
     <QtRcc Include="QtOpenGLWidgetOSG3.qrc" />
   </ItemGroup>
   <ItemGroup>
-    <QtMoc Include="QtOSGWidget.h">
-      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets</IncludePath>
-      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets</IncludePath>
+    <QtMoc Include="OSGWidget.h">
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;D:\Project\OpenSceneGraph_3.6.4\2015Build3.6.4\include</IncludePath>
+      <IncludePath Condition="'$(Configuration)|$(Platform)'=='Release|x64'">.\GeneratedFiles;.;$(QTDIR)\include;.\GeneratedFiles\$(ConfigurationName);$(QTDIR)\include\QtCore;$(QTDIR)\include\QtGui;$(QTDIR)\include\QtANGLE;$(QTDIR)\include\QtOpenGL;$(QTDIR)\include\QtWidgets;D:\Project\OpenSceneGraph_3.6.4\2015Build3.6.4\include</IncludePath>
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="QtCameraManipulator.h" />
+    <ClInclude Include="LineIntersector.h" />
+    <ClInclude Include="OSGCameraManipulator.h" />
+    <ClInclude Include="OSGPickHandler.h" />
+    <ClInclude Include="PointIntersector.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Condition="Exists('$(QtMsBuild)\qt.targets')">

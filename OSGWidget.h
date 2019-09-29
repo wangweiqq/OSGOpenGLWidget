@@ -8,6 +8,9 @@
 #include <osg/ShapeDrawable>
 #include <osg/Material>
 #include <osg/DrawPixels>
+#include <osg/Point>
+#include <osg/StateAttribute>
+#include <osg/PointSprite>
 #include <osgGA/TrackballManipulator>
 #include <osgGA/FlightManipulator>
 #include <osgGA/StateSetManipulator>
@@ -20,9 +23,10 @@
 
 #include <iostream>
 
-#include "QtCameraManipulator.h"
+#include "OSGCameraManipulator.h"
+#include "OSGPickHandler.h"
 
-class QtOSGWidget : public QOpenGLWidget
+class OSGWidget : public QOpenGLWidget
 {
 	Q_OBJECT
 
@@ -37,8 +41,8 @@ public:
 		ONEPOINT,//测量一点
 		TWOMEAUSE//测量两点
 	};
-	QtOSGWidget(QWidget *parent = nullptr);
-	~QtOSGWidget();
+	OSGWidget(QWidget *parent = nullptr);
+	~OSGWidget();
 	/**
 		查找场景子节点yan
 	*/
@@ -98,8 +102,10 @@ public slots:
 	void onClear();
 	void onRecHeightRamp(int axis, QColor beginColor, QColor endColor);
 
-	void onSelCloudPoint(QtOSGWidget::MeauseCloud meause);
+	void onSelCloudPoint(OSGWidget::MeauseCloud meause);
 private:
 	osg::ref_ptr<osgViewer::GraphicsWindowEmbedded> _mGraphicsWindow;
 	osg::ref_ptr<osgViewer::Viewer> _mViewer;
+
+	osg::ref_ptr<OSGPickHandler> _mPickHandler = nullptr;
 };

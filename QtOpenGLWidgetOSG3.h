@@ -12,7 +12,7 @@ public:
 signals:
 	void sendHeightRamp(int axis, QColor beginColor, QColor endColor);
 	//选1点
-	void selCloudPoint(QtOSGWidget::MeauseCloud meause = QtOSGWidget::NONE);
+	void selCloudPoint(OSGWidget::MeauseCloud meause = OSGWidget::NONE);
 public slots:
 	/**
 		更改高度图样式
@@ -25,7 +25,7 @@ public slots:
 	void onSendHeightRamp();
 	void onRecHeightRamp(int, QColor, QColor);
 
-	void onSelPoint();
+	void onSelPoint(bool checked);
 	void onResetSelPoint();
 	void onCancelSelPoint();
 private:
