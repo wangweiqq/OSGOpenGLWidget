@@ -1,6 +1,9 @@
 #include "PointIntersector.h"
 
 #include <osg/Geometry>
+#include <math.h>
+#include <algorithm>
+#include <iostream>
 
 PointIntersector::PointIntersector()
     : LineIntersector()
@@ -85,22 +88,55 @@ void PointIntersector::intersect(osgUtil::IntersectionVisitor &iv, osg::Drawable
 
         osg::Vec3d dir = e - s;
         double invLength = 1.0 / dir.length();
+		double minval = 0.0;
+		bool isfrist = true;
+		int index = 0;
         for (unsigned int i=0; i<vertices->size(); ++i)
         {
             double distance = std::fabs( (((*vertices)[i] - s)^dir).length() );
             distance *= invLength;
-            if ( m_offset<distance ) continue;
+			if (isfrist) {
+				isfrist = false;
+				minval = distance;
+				index = i;
+			}
+			else if (minval > distance) {
+				minval = distance;
+				index = i;
+			}
+			
+			/*if (m_offset < distance) {
+				minval = std::min(minval, distance);
+				continue;
+			}
 
-            Intersection hit;
-            hit.ratio = distance;
-            hit.nodePath = iv.getNodePath();
-            hit.drawable = drawable;
-            hit.matrix = iv.getModelMatrix();
-            hit.primitiveIndex = i;
-            hit.localIntersectionPoint = (*vertices)[i];
-            m_hitIndices.push_back(i);
-            insertIntersection(hit);
+			Intersection hit;
+			hit.ratio = distance;
+			hit.nodePath = iv.getNodePath();
+			hit.drawable = drawable;
+			hit.matrix = iv.getModelMatrix();
+			hit.primitiveIndex = i;
+			hit.localIntersectionPoint = (*vertices)[i];
+			m_hitIndices.push_back(i);
+			insertIntersection(hit);
+			*/
         }
+		if (minval > 1) {
+			return;
+		}
+		Intersection hit;
+		hit.ratio = minval;
+		hit.nodePath = iv.getNodePath();
+		hit.drawable = drawable;
+		hit.matrix = iv.getModelMatrix();
+		hit.primitiveIndex = index;
+		hit.localIntersectionPoint = (*vertices)[index];
+		m_hitIndices.push_back(index);
+		insertIntersection(hit);
+		/*std::cout << "dir = (" << dir.x() << "," << dir.y() << "," << dir.z() <<
+			") , start = (" << s.x() << "" << s.y() << "," << s.z() <<
+			") , end = ("<<e.x()<<","<<e.y()<<","<<e.z()<<") ,minval = "<< minval << std::endl;
+		int a = 0;*/
     }
 }
 

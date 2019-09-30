@@ -82,7 +82,7 @@ void QtOpenGLWidgetOSG3::onSelEndColor() {
 	if (color.isValid()) {
 		color.getRgb(&r, &g, &b);
 		endColor = color;
-		this->ui.btnBeginColor->setStyleSheet(QString("background-color: rgb(%1, %2, %3)").arg(r).arg(g).arg(b));
+		this->ui.btnEndColor->setStyleSheet(QString("background-color: rgb(%1, %2, %3)").arg(r).arg(g).arg(b));
 	}
 }
 void QtOpenGLWidgetOSG3::onSendHeightRamp() {

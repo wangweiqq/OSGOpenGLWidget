@@ -52,6 +52,10 @@ void OSGWidget::initializeGL() {
 	camera->setProjectionMatrixAsPerspective(30, (double)this->width() / this->height(), 1, 1000);
 	camera->setViewport(0, 0, this->width(), this->height());
 	camera->setGraphicsContext(_mGraphicsWindow.get());
+	//这是因为默认把小物体裁剪掉了，因此需要添加下面代码：
+	osg::CullStack::CullingMode cullingMode = camera->getCullingMode();
+	cullingMode &= ~(osg::CullStack::SMALL_FEATURE_CULLING);
+	camera->setCullingMode(cullingMode);
 
 	/*osg::ref_ptr<osgGA::TrackballManipulator> manipulator = new osgGA::TrackballManipulator();
 	osg::ref_ptr<osgGA::FlightManipulator> manipulator2 = new osgGA::FlightManipulator;*/
@@ -75,6 +79,9 @@ void OSGWidget::initializeGL() {
 	QByteArray barr = QString("root").toLocal8Bit();
 	char* bdata = barr.data();
 	root->setName(bdata);
+
+	
+
 	//std::cout << root->getName() << std::endl;
 	//osgUtil::Optimizer optimizer;
 	//optimizer.optimize(root.get());
@@ -97,7 +104,8 @@ void OSGWidget::initializeGL() {
 	_mViewer->realize();
 	//glEnable(GL_DEPTH_TEST);
 
-
+	/*OSGPickHandler* handler = new OSGPickHandler(_mViewer);
+	handler->DrawTips(osg::Vec3(-202.414, 961, 70.0564));*/
 	
 }
 /**
@@ -162,6 +170,7 @@ void OSGWidget::mousePressEvent(QMouseEvent *event) {
 		button = 3;
 		break;
 	}
+	std::cout << "qt mouse click = ("<<event->x()<<","<<event->y()<<")" << std::endl;
 	getEventQueue()->mouseButtonPress(event->x(), event->y(), button);
 	QOpenGLWidget::mousePressEvent(event);
 }
@@ -296,7 +305,7 @@ void OSGWidget::onSelCloudPoint(OSGWidget::MeauseCloud meause) {
 	case OSGWidget::RESET:
 	{
 		if (!_mPickHandler.valid()) {
-			_mPickHandler = new OSGPickHandler;
+			_mPickHandler = new OSGPickHandler(_mViewer);
 			_mViewer->addEventHandler(_mPickHandler);
 		}
 		_mPickHandler->Reset();
@@ -305,7 +314,7 @@ void OSGWidget::onSelCloudPoint(OSGWidget::MeauseCloud meause) {
 	case OSGWidget::ONEPOINT:
 	{
 		if (!_mPickHandler.valid()) {
-			_mPickHandler = new OSGPickHandler;
+			_mPickHandler = new OSGPickHandler(_mViewer);
 			_mViewer->addEventHandler(_mPickHandler);
 		}
 		_mPickHandler->OnePoint();
@@ -314,7 +323,7 @@ void OSGWidget::onSelCloudPoint(OSGWidget::MeauseCloud meause) {
 	case OSGWidget::TWOMEAUSE:
 	{
 		if (!_mPickHandler.valid()) {
-			_mPickHandler = new OSGPickHandler;
+			_mPickHandler = new OSGPickHandler(_mViewer);
 			_mViewer->addEventHandler(_mPickHandler);
 		}
 		_mPickHandler->TwoMeause();
@@ -379,8 +388,8 @@ void OSGWidget::onCloud() {
 	}
 	osg::ref_ptr<osg::Node> node = createCloud();
 	root->addChild(node.get());
-	osg::BoundingSphere bound = node->getBound();
-	std::cout<<"x = "<<bound.center().x()<<",y = "<< bound.center().y()<<",z = "<< bound.center().z()<<", R  = "<< bound.radius();
+	//osg::BoundingSphere bound = node->getBound();
+	//std::cout << "x = " << bound.center().x() << ",y = " << bound.center().y() << ",z = " << bound.center().z() << ", R  = " << bound.radius() << std::endl;
 	_mViewer->setSceneData(NULL);
 	_mViewer->setSceneData(root);
 	//_mViewer->setCameraManipulator(NULL);
@@ -665,16 +674,20 @@ osg::ref_ptr<osg::Node> OSGWidget::createQuad() {
 	osg::ref_ptr<osg::Point> pointSize = new osg::Point;
 	pointSize->setSize(10.0);
 	stateSet->setAttribute(pointSize, osg::StateAttribute::OFF);
-	osg::PointSprite *sprite = new osg::PointSprite();
-	stateSet->setTextureAttributeAndModes(0, sprite, osg::StateAttribute::ON);
+	stateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
+	stateSet->setMode(GL_POINT_SPRITE_ARB, osg::StateAttribute::ON);
+	geom->setStateSet(stateSet);
+	//osg::PointSprite *sprite = new osg::PointSprite();
+	//stateSet->setTextureAttributeAndModes(0, sprite, osg::StateAttribute::ON);
 
 	//创建顶点数组，注意顺序逆时针
 	osg::ref_ptr<osg::Vec3Array> v = new osg::Vec3Array();
-	v->push_back(osg::Vec3(0.0f, 0.0f, 0.0f));	
-	v->push_back(osg::Vec3(1.0f, 0.0f, 0.0f));
-	//stateSet->setAttribute(pointSize, osg::StateAttribute::OFF);
-	v->push_back(osg::Vec3(1.0f, 0.0f, 1.0f));
-	v->push_back(osg::Vec3(0.0f, 0.0f, 1.0f));
+	v->push_back(osg::Vec3(-202.414, 961, 70.0564));
+	//v->push_back(osg::Vec3(0.0, 0.0, 0.0));
+	//v->push_back(osg::Vec3(1.0f, 0.0f, 0.0f));
+	////stateSet->setAttribute(pointSize, osg::StateAttribute::OFF);
+	//v->push_back(osg::Vec3(1.0f, 0.0f, 1.0f));
+	//v->push_back(osg::Vec3(0.0f, 0.0f, 1.0f));
 	//设置顶点数据
 	geom->setVertexArray(v.get());
 	int test = v->size();
@@ -691,9 +704,9 @@ osg::ref_ptr<osg::Node> OSGWidget::createQuad() {
 	//创建颜色数组
 	osg::ref_ptr<osg::Vec4Array> vc = new osg::Vec4Array();
 	vc->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
-	vc->push_back(osg::Vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	/*vc->push_back(osg::Vec4(0.0f, 1.0f, 0.0f, 1.0f));
 	vc->push_back(osg::Vec4(0.0f, 0.0f, 1.0f, 1.0f));
-	vc->push_back(osg::Vec4(1.0f, 1.0f, 0.0f, 1.0f));
+	vc->push_back(osg::Vec4(1.0f, 1.0f, 0.0f, 1.0f));*/
 	//设置颜色数组
 	geom->setColorArray(vc.get());
 	//设置颜色绑定方式为单个顶点
@@ -708,13 +721,13 @@ osg::ref_ptr<osg::Node> OSGWidget::createQuad() {
 	//geom->setNormalBinding(osg::Geometry::BIND_OVERALL);
 
 	//添加图元，绘图基元为四边形
-	geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::POINTS, 0, 4));
-	//geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::POINTS, 0, v->size()));
+	//geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::POINTS, 0, 4));
+	geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::POINTS, 0, v->size()));
 
 	//将图元添加至叶子节点
 	geode->addDrawable(geom.get());
 
-	geode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
+	//geode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
 
 	//自动生成顶点法线(必须在addDrawable后)
 	osgUtil::SmoothingVisitor::smooth(*(geom.get()));
