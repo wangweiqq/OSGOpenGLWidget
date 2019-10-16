@@ -5,12 +5,16 @@
 #pragma comment(lib,"osgGAd.lib")
 #pragma comment(lib,"osgDBd.lib")
 #pragma comment(lib,"osgUtild.lib")
+#pragma comment(lib,"osgTextd.lib")
+#pragma comment(lib,"osgWidgetd.lib")
 #else
 #pragma comment(lib,"osg.lib")
 #pragma comment(lib,"osgViewer.lib")
 #pragma comment(lib,"osgGA.lib")
 #pragma comment(lib,"osgDB.lib")
 #pragma comment(lib,"osgUtil.lib")
+#pragma comment(lib,"osgText.lib")
+#pragma comment(lib,"osgWidget.lib")
 #endif
 
 #include "OSGWidget.h"
@@ -49,6 +53,7 @@ void OSGWidget::initializeGL() {
 
 	osg::Camera* camera = _mViewer->getCamera();
 	camera->setClearColor(osg::Vec4(0.0f, 0.0f, 0.0f, 1.0f));
+	//camera->setClearColor(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
 	camera->setProjectionMatrixAsPerspective(30, (double)this->width() / this->height(), 1, 1000);
 	camera->setViewport(0, 0, this->width(), this->height());
 	camera->setGraphicsContext(_mGraphicsWindow.get());
@@ -88,7 +93,8 @@ void OSGWidget::initializeGL() {
 	//_mViewer->setSceneData(root);
 	//_mViewer->realize();
 	//root->addChild(createQuad().get());
-	//root->addChild(createCloud().get());
+	root->addChild(createCloud().get());
+	//root->addChild(createHUD(_mViewer));
 	//root->addChild(createCoordinate().get());
 	//root->addChild(createShape().get());
 
@@ -104,15 +110,63 @@ void OSGWidget::initializeGL() {
 	_mViewer->realize();
 	//glEnable(GL_DEPTH_TEST);
 
-	/*OSGPickHandler* handler = new OSGPickHandler(_mViewer);
-	handler->DrawTips(osg::Vec3(-202.414, 961, 70.0564));*/
-	
+	//OSGPickHandler* handler = new OSGPickHandler(_mViewer);
+	//handler->DrawTips(osg::Vec3(-202.414, 961, 70.0564));
+	//
+	////世界坐标转屏幕坐标
+	//osg::Camera* _tCamera = _mViewer->getCamera();
+	//osg::Matrix VPW = _tCamera->getViewMatrix() *
+	//	_tCamera->getProjectionMatrix() *
+	//	_tCamera->getViewport()->computeWindowMatrix();
+	//osg::Vec3 window = osg::Vec3(-202.414f, 961.0f, 70.0564f) * VPW;
+	//std::cout << "2.(" << window.x() << "," << window.y() << "," << window.z() << ")" << std::endl;
+	//std::cout << "screen 2" << this->width() << "," << this->height() << std::endl;
 }
 /**
 在场景更新时渲染OpenGL
 */
 void OSGWidget::paintGL() {
+	if (_mPickHandler.valid()) {
+		_mPickHandler->UpdateBoard();
+	}
 	_mViewer->frame();
+	//osg::Group* group = _mViewer->getSceneData()->asGroup();
+	//for (int i = 0; i < group->getNumChildren(); ++i) {
+	//	osg::Node* n = group->getChild(i);
+	//	if (n->getName() == "ULDCamera") {
+	//		osg::Camera* cam = n->asCamera();
+	//		osg::Matrix viewMatr = cam->getViewMatrix();
+	//		osg::Matrix ProjectionM = cam->getProjectionMatrix();
+	//		osg::Matrix WindowMatrix = cam->getViewport()->computeWindowMatrix();
+	//		osg::Matrix VPW = cam->getViewMatrix() *
+	//			cam->getProjectionMatrix() *
+	//			cam->getViewport()->computeWindowMatrix();
+	//		double left, right, top, bottom, dnear, dfar;
+	//		cam->getProjectionMatrixAsOrtho(left, right, bottom, top, dnear, dfar);
+	//		std::cout << i << cam->getName() << "ViewPort" << cam->getViewport()->x()
+	//			<< "," << cam->getViewport()->y() << "," << cam->getViewport()->width() << ", ortho2d = " <<
+	//			left << "," << right << "," << bottom << "," << top << "," << dnear << "," << dfar << ", Mask"
+	//			<< cam->getNodeMask() << std::endl;
+
+	//		
+	//		for (int j = 0; j < cam->getNumChildren(); ++j) {
+	//			osg::Geode* ge = cam->getChild(j)->asGeode();
+	//			for (int z = 0; z < ge->getNumDrawables(); z++) {
+	//				std::cout << ge->getName() << std::endl;
+	//				osg::Geometry* geo = ge->getDrawable(z)->asGeometry();
+	//				if (geo && geo->getName() == "BoxPanel") {
+	//					osg::Vec3Array* vec = dynamic_cast<osg::Vec3Array*>(geo->getVertexArray());
+	//					for (int zz = 0; zz < vec->size(); ++zz) {
+	//						std::cout << "boxpoint :" << vec->at(zz).x()<<","<< vec->at(zz).y()<<","<< vec->at(zz).z() << std::endl;
+	//					}
+	//				}
+	//			}
+	//		}
+	//	}
+	//	/*std::cout << n->getName()<<","<<n->className() << std::endl;
+	//	std::cout << std::endl;*/
+	//}
+	//std::cout << " OSGWidget::paintGL" << std::endl;
 }
 /**
 设置OpenGL视口，投影等
@@ -125,6 +179,15 @@ void OSGWidget::resizeGL(int w, int h) {
 	//以下两个方法顺序
 	camera->setProjectionMatrixAsPerspective(30, (double)w / h, 1, 1000);
 	camera->setViewport(0, 0, w, h);
+
+
+	//世界坐标转屏幕坐标
+	osg::Camera* _tCamera = _mViewer->getCamera();
+	osg::Matrix VPW = _tCamera->getViewMatrix() *
+		_tCamera->getProjectionMatrix() *
+		_tCamera->getViewport()->computeWindowMatrix();
+	osg::Vec3 window = osg::Vec3(-202.414f, 961.0f, 70.0564f) * VPW;
+	std::cout << "3.(" << window.x() << "," << window.y() << "," << window.z() << ")" << std::endl;
 }
 /**
 获取OSG事件队列
@@ -304,11 +367,10 @@ void OSGWidget::onSelCloudPoint(OSGWidget::MeauseCloud meause) {
 	{
 	case OSGWidget::RESET:
 	{
-		if (!_mPickHandler.valid()) {
-			_mPickHandler = new OSGPickHandler(_mViewer);
-			_mViewer->addEventHandler(_mPickHandler);
+		if (_mPickHandler.valid()) {
+			_mPickHandler->Reset();
+			this->update();
 		}
-		_mPickHandler->Reset();
 	}
 		break;
 	case OSGWidget::ONEPOINT:
@@ -325,7 +387,7 @@ void OSGWidget::onSelCloudPoint(OSGWidget::MeauseCloud meause) {
 		if (!_mPickHandler.valid()) {
 			_mPickHandler = new OSGPickHandler(_mViewer);
 			_mViewer->addEventHandler(_mPickHandler);
-		}
+		}		
 		_mPickHandler->TwoMeause();
 	}
 		break;
@@ -333,8 +395,9 @@ void OSGWidget::onSelCloudPoint(OSGWidget::MeauseCloud meause) {
 	default:
 		if (_mPickHandler.valid()) {
 			_mViewer->removeEventHandler(_mPickHandler);
-			_mPickHandler.release();
+			_mPickHandler.~ref_ptr();
 		}
+		this->update();
 		break;
 	}
 }
@@ -608,19 +671,26 @@ void OSGWidget::computeNodePosition(osg::Node* node, const osg::Camera *camera, 
 /**
 度点云文件
 */
-float minX, maxX, minY, maxY, minZ, maxZ;
+//float minX, maxX, minY, maxY, minZ, maxZ;
+double minX, maxX, minY, maxY, minZ, maxZ;
 osg::ref_ptr<osg::Vec3Array> OSGWidget::ReadModelFile(std::string filePath) {
+//osg::ref_ptr<osg::Vec3dArray> OSGWidget::ReadModelFile(std::string filePath) {
 	osg::ref_ptr<osg::Vec3Array> list = new osg::Vec3Array;
+	//osg::ref_ptr<osg::Vec3dArray> list = new osg::Vec3dArray;
 	FILE* pfData = fopen(filePath.c_str(), "r");
 	if (pfData == NULL) {
 		return list;
 	}
 	bool first = true;
 	while (!feof(pfData)) {
-		float fx, fy, fz;
+		/*float fx, fy, fz;
 		std::fscanf(pfData, "%f", &fx);
 		std::fscanf(pfData, "%f", &fy);
-		std::fscanf(pfData, "%f", &fz);
+		std::fscanf(pfData, "%f", &fz);*/
+		double fx, fy, fz;
+		std::fscanf(pfData, "%lf", &fx);
+		std::fscanf(pfData, "%lf", &fy);
+		std::fscanf(pfData, "%lf", &fz);
 		if (first) {
 			minX = maxX = fx;
 			minY = maxY = fy;
@@ -772,6 +842,7 @@ osg::ref_ptr<osg::Node> OSGWidget::createCloud() {
 	//osg::ref_ptr<osg::DrawPixels> geom = new osg::DrawPixels;
 	//创建顶点数组，注意顺序逆时针
 	osg::ref_ptr<osg::Vec3Array> v = ReadModelFile("model.txt");
+	//osg::ref_ptr<osg::Vec3dArray> v = ReadModelFile("model.txt");
 	//设置顶点数据
 	geom->setVertexArray(v.get());
 	int test = v->size();
@@ -1012,4 +1083,195 @@ osg::ref_ptr<osg::Node> OSGWidget::createCoordinate() {
 	newroot->addChild(geode.get());*/
 
 	return geode;
+}
+
+//创建HUD
+osg::ref_ptr<osg::Node> OSGWidget::createHUD(osgViewer::Viewer* viewer) {
+	int padding = 5;
+	int w_box = 120;
+	int h_box = 80;
+	osg::Vec3 w_pos(w_box,0.0f,0.0f);
+	osg::Vec3 h_pos(0.0f, h_box, 0.0f);
+	//Box位置偏移
+	osg::Vec3 z_boxoffset(0.0f, 0.0f, -0.1f);
+	//Box位置
+	osg::Vec3 p_box(100.0, 100.0, 0);
+	//Box绝对位置（左下角为0点）
+	osg::Vec3 box_relpos[] = { z_boxoffset ,z_boxoffset + w_pos ,z_boxoffset + w_pos + h_pos ,z_boxoffset + h_pos };
+
+	//x，y，z小方块绘制
+	int cub_width = 15;
+	osg::Vec3 cub_relpos[] = { osg::Vec3(0.0, 0.0, 0.0) ,osg::Vec3(cub_width, 0.0, 0.0) ,osg::Vec3(cub_width, cub_width, 0.0) ,osg::Vec3(0.0, cub_width, 0.0) };
+	
+	//字体位置
+	osg::Vec3 f1_pos = p_box + h_pos - osg::Vec3(-1.0f, 1.0f, 0.0f)*padding;
+
+
+	//创建HUD相机
+	osg::ref_ptr<osg::Camera> camera = new osg::Camera;
+	camera->setViewMatrix(osg::Matrix::identity());
+	camera->setRenderOrder(osg::Camera::POST_RENDER);
+	camera->setClearMask(GL_DEPTH_BUFFER_BIT);
+	camera->setAllowEventFocus(false);
+	camera->setReferenceFrame(osg::Transform::ABSOLUTE_RF);
+	std::cout << "screen 1" << this->width() << "," << this->height() << std::endl;
+	/*camera->setProjectionMatrixAsOrtho2D(0, this->width(), 0, this->height());
+	camera->setViewport(0, 0, this->width(), this->height());*/
+	camera->setProjectionMatrixAsOrtho2D(0, 1024, 0, 768);
+	camera->setViewport(0, 0, 1024, 768);
+	camera->setNodeMask(1);
+
+	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+	geode->setNodeMask(1);
+	//设置状态关闭灯光
+	osg::StateSet* stateset = geode->getOrCreateStateSet();
+	stateset->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
+	stateset->setMode(GL_BLEND, osg::StateAttribute::ON);
+
+	osg::ref_ptr<osg::Geometry> gm = new osg::Geometry;
+	gm->setName("MyBox");
+	gm->setNodeMask(1);
+	geode->addDrawable(gm);
+
+	//压入顶点
+	osg::Vec3Array *vertex = new osg::Vec3Array;
+	for (int i = 0; i < sizeof(box_relpos) / sizeof(box_relpos[0]); ++i) {
+		vertex->push_back(box_relpos[i]+ p_box);
+	}
+	gm->setVertexArray(vertex);
+
+	//创建颜色数组
+	osg::ref_ptr<osg::Vec4Array> vc = new osg::Vec4Array();
+	vc->push_back(osg::Vec4(0.75f, 0.81f, 0.84f, 0.8f));
+	//设置颜色数组
+	gm->setColorArray(vc.get());
+	//设置颜色绑定方式为单个顶点
+	gm->setColorBinding(osg::Geometry::BIND_OVERALL);
+
+	//法线
+	osg::Vec3Array *norm = new osg::Vec3Array;
+	norm->push_back(osg::Vec3(0.0, 0.0, 1.0));
+	gm->setNormalArray(norm);
+	gm->setNormalBinding(osg::Geometry::BIND_OVERALL);
+	gm->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS, 0, vertex->size()));
+
+	osg::ref_ptr<osg::Geometry> gm2 = new osg::Geometry;
+	geode->addDrawable(gm2);
+
+	//世界坐标转屏幕坐标
+	osg::Camera* _tCamera = viewer->getCamera();
+	osg::Matrix VPW = _tCamera->getViewMatrix() *
+		_tCamera->getProjectionMatrix() *
+		_tCamera->getViewport()->computeWindowMatrix();
+	osg::Vec3 window = osg::Vec3(-202.414f, 961.0f, 70.0564f) * VPW;
+	std::cout <<"1.("<< window.x()<<"," << window.y() << "," << window.z() << ")" << std::endl;
+
+	//压入顶点
+	osg::Vec3Array *vertex2 = new osg::Vec3Array;
+	vertex2->push_back(box_relpos[0]+ p_box);
+	vertex2->push_back(box_relpos[0]+ p_box+ osg::X_AXIS*10);
+	vertex2->push_back(osg::Vec3(379.869f, 385.842f, 1.00056f));//测试顶点
+	gm2->setVertexArray(vertex2);
+
+	//创建颜色数组
+	osg::ref_ptr<osg::Vec4Array> vc2 = new osg::Vec4Array();
+	vc2->push_back(osg::Vec4(0.75f, 0.81f, 0.84f, 0.8f));
+	//设置颜色数组
+	gm2->setColorArray(vc2.get());
+	//设置颜色绑定方式为单个顶点
+	gm2->setColorBinding(osg::Geometry::BIND_OVERALL);
+
+	gm2->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::TRIANGLES, 0, vertex2->size()));
+	
+	//设置字体
+	osg::ref_ptr<osgText::Text> text = new osgText::Text;
+	text->setFont("msyh.ttc");	
+	text->setText(L"Point #253504");//动态传入ID号
+	text->setLineSpacing(0.25f);
+	text->setCharacterSize(10);
+	text->setColor(osg::Vec4(0.0,0.0,0.0,1.0));
+	int chheight = text->getCharacterHeight();
+	//int chheight2 = text->getFontHeight();
+	//osg::BoundingBox f1_boundbox = text->getBoundingBox();
+	//int f1_height = f1_boundbox.yMax() - f1_boundbox.yMin();
+	osg::Vec3 f1_pos2 = osg::Vec3(f1_pos.x(), f1_pos.y() - chheight, f1_pos.z());
+	text->setPosition(f1_pos2);
+
+	//绘制方块1
+	//osg::Vec3 cub_pos1 = f1_pos2 - osg::Vec3(0.0f, 1.0f, 0.0f)*text->getFontHeight() - osg::Y_AXIS*padding;
+	osg::Vec3 cub_pos1 = f1_pos2- osg::Y_AXIS* chheight*2 - osg::Y_AXIS*padding;
+	osg::ref_ptr<osg::Geometry> gm3 = new osg::Geometry;
+	geode->addDrawable(gm3);
+
+	//压入顶点
+	osg::Vec3Array *vertex3 = new osg::Vec3Array;
+	for (int i = 0; i < sizeof(cub_relpos) / sizeof(cub_relpos[0]); ++i) {
+		vertex3->push_back(cub_relpos[i] + cub_pos1);
+	}
+	gm3->setVertexArray(vertex3);
+
+	//创建颜色数组
+	osg::ref_ptr<osg::Vec4Array> vc3 = new osg::Vec4Array();
+	vc3->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f));
+	//设置颜色数组
+	gm3->setColorArray(vc3.get());
+	//设置颜色绑定方式为单个顶点
+	gm3->setColorBinding(osg::Geometry::BIND_OVERALL);
+	gm3->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS, 0, vertex3->size()));
+
+	//绘制方块2
+	osg::Vec3 cub_pos2 = cub_pos1 - osg::Y_AXIS*cub_width;
+	osg::ref_ptr<osg::Geometry> gm4 = new osg::Geometry;
+	geode->addDrawable(gm4);
+
+	//压入顶点
+	osg::Vec3Array *vertex4 = new osg::Vec3Array;
+	for (int i = 0; i < sizeof(cub_relpos) / sizeof(cub_relpos[0]); ++i) {
+		vertex4->push_back(cub_relpos[i] + cub_pos2);
+	}
+	gm4->setVertexArray(vertex4);
+
+	//创建颜色数组
+	osg::ref_ptr<osg::Vec4Array> vc4 = new osg::Vec4Array();
+	vc4->push_back(osg::Vec4(0.0f, 1.0f, 0.0f, 1.0f));
+	//设置颜色数组
+	gm4->setColorArray(vc4.get());
+	//设置颜色绑定方式为单个顶点
+	gm4->setColorBinding(osg::Geometry::BIND_OVERALL);
+
+	gm4->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS, 0, vertex4->size()));
+	//绘制方块3
+	osg::Vec3 cub_pos3 = cub_pos2 - osg::Y_AXIS*cub_width;
+	osg::ref_ptr<osg::Geometry> gm5 = new osg::Geometry;
+	geode->addDrawable(gm5);
+
+	//压入顶点
+	osg::Vec3Array *vertex5 = new osg::Vec3Array;
+	for (int i = 0; i < sizeof(cub_relpos) / sizeof(cub_relpos[0]); ++i) {
+		vertex5->push_back(cub_relpos[i] + cub_pos3);
+	}
+	gm5->setVertexArray(vertex5);
+
+	//创建颜色数组
+	osg::ref_ptr<osg::Vec4Array> vc5 = new osg::Vec4Array();
+	vc5->push_back(osg::Vec4(0.0f, 0.0f, 1.0f, 1.0f));
+	//设置颜色数组
+	gm5->setColorArray(vc5.get());
+	//设置颜色绑定方式为单个顶点
+	gm5->setColorBinding(osg::Geometry::BIND_OVERALL);
+
+	gm5->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS, 0, vertex5->size()));
+
+	//字体位置
+	//osg::Vec3 f1_pos = p_box + h_pos - osg::Vec3(-1.0f, 1.0f, 0.0f)*padding;
+
+	geode->addDrawable(text);
+	camera->addChild(geode);
+	_mViewer->getSceneData()->asGroup()->addChild(camera);
+	camera->setName("ULDCamera");
+	//this->update();
+	return camera;
+}
+void OSGWidget::onTest() {
+	createHUD(_mViewer);
 }

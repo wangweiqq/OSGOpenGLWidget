@@ -25,12 +25,15 @@ public slots:
 	void onSendHeightRamp();
 	void onRecHeightRamp(int, QColor, QColor);
 
-	void onSelPoint(bool checked);
+	void onSelPoint(QAbstractButton *button, bool checked);
 	void onResetSelPoint();
 	void onCancelSelPoint();
+	void on_btnTest_clicked();
 private:
 	Ui::QtOpenGLWidgetOSG3Class ui;
 	int axisdirect = 0;
 	QColor begColor = Qt::green;
 	QColor endColor = Qt::red;
+
+	QButtonGroup* radGroup;
 };

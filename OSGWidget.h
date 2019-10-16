@@ -11,6 +11,7 @@
 #include <osg/Point>
 #include <osg/StateAttribute>
 #include <osg/PointSprite>
+#include <osg/Camera>
 #include <osgGA/TrackballManipulator>
 #include <osgGA/FlightManipulator>
 #include <osgGA/StateSetManipulator>
@@ -20,6 +21,8 @@
 #include <osgViewer/ViewerEventHandlers>
 #include <osgUtil/Optimizer>
 #include <osgUtil/SmoothingVisitor>
+#include <osgText/Text>
+#include <osgWidget/Box>
 
 #include <iostream>
 
@@ -75,6 +78,7 @@ private:
 	/**
 		 读取3D点云
 	*/
+	//osg::ref_ptr<osg::Vec3dArray> ReadModelFile(std::string filename);
 	osg::ref_ptr<osg::Vec3Array> ReadModelFile(std::string filename);
 	//测试：
 	/**
@@ -93,6 +97,8 @@ private:
 	osg::ref_ptr<osg::Node> createShape();
 	//绘制坐标轴
 	osg::ref_ptr<osg::Node> createCoordinate();
+	//创建HUD
+	osg::ref_ptr<osg::Node> createHUD(osgViewer::Viewer*);
 public slots:
 	void onCylinder();
 	void onQuad();
@@ -103,6 +109,8 @@ public slots:
 	void onRecHeightRamp(int axis, QColor beginColor, QColor endColor);
 
 	void onSelCloudPoint(OSGWidget::MeauseCloud meause);
+
+	void onTest();
 private:
 	osg::ref_ptr<osgViewer::GraphicsWindowEmbedded> _mGraphicsWindow;
 	osg::ref_ptr<osgViewer::Viewer> _mViewer;

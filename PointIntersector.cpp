@@ -131,6 +131,7 @@ void PointIntersector::intersect(osgUtil::IntersectionVisitor &iv, osg::Drawable
 		hit.matrix = iv.getModelMatrix();
 		hit.primitiveIndex = index;
 		hit.localIntersectionPoint = (*vertices)[index];
+		hit.localIntersectionNormal = (*vertices)[index];
 		m_hitIndices.push_back(index);
 		insertIntersection(hit);
 		/*std::cout << "dir = (" << dir.x() << "," << dir.y() << "," << dir.z() <<
