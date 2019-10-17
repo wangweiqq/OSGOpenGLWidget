@@ -652,10 +652,10 @@ bool OSGPickHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAd
 					return true;
 				}
 			}
-			if (mTwoBoard.valid()) {
-				if (mTwoBoard->IsCheckClick(osg::Vec3(ea.getX(), ea.getY(), 0)))
+			if (mMeasure.valid()) {
+				if (mMeasure->IsCheckClick(osg::Vec3(ea.getX(), ea.getY(), 0)))
 				{
-					mTwoBoard->RecordMoveOffset(osg::Vec3(ea.getX(), ea.getY(), 0));
+					mMeasure->RecordMoveOffset(osg::Vec3(ea.getX(), ea.getY(), 0));
 					return true;
 				}
 			}
@@ -674,8 +674,8 @@ bool OSGPickHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAd
 			if (mOneBoard.valid()) {
 				mOneBoard->IsAllowMove = false;
 			}
-			else if (mTwoBoard.valid()) {
-				mTwoBoard->IsAllowMove = false;
+			else if (mMeasure.valid()) {
+				mMeasure->IsAllowMove = false;
 			}
 		}
 	}
@@ -687,8 +687,8 @@ bool OSGPickHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAd
 			mOneBoard->MoveBuildBoard(osg::Vec3(ea.getX(), ea.getY(), 0));
 			return true;
 		}
-		else if (mTwoBoard.valid() && mTwoBoard->IsAllowMove) {
-			mTwoBoard->MoveBuildBoard(osg::Vec3(ea.getX(), ea.getY(), 0));
+		else if (mMeasure.valid() && mMeasure->IsAllowMove) {
+			mMeasure->MoveBuildBoard(osg::Vec3(ea.getX(), ea.getY(), 0));
 			return true;
 		}
 	}
@@ -811,8 +811,8 @@ void OSGPickHandler::Reset() {
 	if (mOneBoard.valid()) {
 		mOneBoard.~ref_ptr();
 	}
-	if (mTwoBoard.valid()) {
-		mTwoBoard.~ref_ptr();
+	if (mMeasure.valid()) {
+		mMeasure.~ref_ptr();
 	}
 	allowPointsNum = 0;
 }
@@ -826,31 +826,33 @@ void OSGPickHandler::TwoMeause() {
 	Reset();
 	allowPointsNum = 2;
 }
-/**
-创建面板
-*/
-void OSGPickHandler::CreateBoard(QString name,unsigned int primitiveIndex,osg::Vec3 pos,osg::ref_ptr<PointBuildBoard>& board) {
-	/*if (geode.valid()) {
-		mPickGroup->removeChild(geode);
-		geode.~ref_ptr();
-	}
-	geode = createSelPoint(QString("SelPoint_%1").arg(name), pos);
-	mPickGroup->addChild(geode);*/
-	if (board.valid()) {
-		board.~ref_ptr();
-	}
-	board = new PointBuildBoard(QString("BuildBoard_%1").arg(name), primitiveIndex, pos, mViewer, mHUDCamera);
-	board->SetTitle(QString("Point #%1").arg(primitiveIndex));
-	board->SetStrX(QString("%1").arg(pos.x()));
-	board->SetStrY(QString("%1").arg(pos.y()));
-	board->SetStrZ(QString("%1").arg(pos.z()));
-}
+///**
+//创建面板
+//*/
+//void OSGPickHandler::CreateBoard(QString name,unsigned int primitiveIndex,osg::Vec3 pos,osg::ref_ptr<PointBuildBoard>& board) {
+//	/*if (geode.valid()) {
+//		mPickGroup->removeChild(geode);
+//		geode.~ref_ptr();
+//	}
+//	geode = createSelPoint(QString("SelPoint_%1").arg(name), pos);
+//	mPickGroup->addChild(geode);*/
+//	if (board.valid()) {
+//		board.~ref_ptr();
+//	}
+//	board = new PointBuildBoard(QString("BuildBoard_%1").arg(name), primitiveIndex, pos, mViewer, mHUDCamera);
+//	board->SetTitle(QString("Point #%1").arg(primitiveIndex));
+//	board->SetStrX(QString("%1").arg(pos.x()));
+//	board->SetStrY(QString("%1").arg(pos.y()));
+//	board->SetStrZ(QString("%1").arg(pos.z()));
+//}
 void OSGPickHandler::DrawTips(unsigned int primitiveIndex,osg::Vec3 pos) {
 	switch (allowPointsNum)
 	{
 	case 1:
 	{
-		CreateBoard("1", primitiveIndex, pos, mOneBoard);
+		mOneBoard.~ref_ptr();
+		mOneBoard = new PointBuildBoard("BuildBoard_1", primitiveIndex, pos, mViewer, mHUDCamera);
+		//CreateBoard("1", primitiveIndex, pos, mOneBoard);
 		/*if (mOnePoint.valid()) {
 			mPickGroup->removeChild(mOnePoint);
 			mOnePoint.~ref_ptr();
@@ -871,15 +873,19 @@ void OSGPickHandler::DrawTips(unsigned int primitiveIndex,osg::Vec3 pos) {
 	case 2:
 	{
 		if (!mOneBoard.valid()) {
+			mMeasure.~ref_ptr();
+			mOneBoard.~ref_ptr();
+			mOneBoard = new PointBuildBoard("BuildBoard_1", primitiveIndex, pos, mViewer, mHUDCamera);
 			/*QString str("选择点2");
 			mOnePoint = createSelPoint(str, pos);*/
-			CreateBoard("1", primitiveIndex, pos, mOneBoard);
+			//CreateBoard("1", primitiveIndex, pos, mOneBoard);
 		}
 		else {
 			unsigned int oldIndex = mOneBoard->selPosIndex;
 			osg::Vec3 oldPos = mOneBoard->mSelPointPos;
 			mOneBoard.~ref_ptr();
-
+			mMeasure.~ref_ptr();
+			mMeasure = new MeasureBuildBoard(QString("BuildBoard_LineMeasure"), oldIndex, oldPos, primitiveIndex, pos, mViewer, mHUDCamera);
 			//CreateBoard("2", primitiveIndex, pos, mTwoBoard);
 			/*if (mTwoPoint.valid()) {
 				mPickGroup->removeChild(mTwoPoint);
@@ -905,8 +911,8 @@ void OSGPickHandler::UpdateBoard() {
 	if (mOneBoard.valid()) {
 		mOneBoard->UpdateBoxPos();
 	}
-	if (mTwoBoard.valid()) {
-		mTwoBoard->UpdateBoxPos();
+	if (mMeasure.valid()) {
+		mMeasure->UpdateBoxPos();
 	}
 }
 //osg::Geode* OSGPickHandler::DrawOnePoint(QString name, osg::Vec3& pos) {

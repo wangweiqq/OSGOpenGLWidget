@@ -10,7 +10,6 @@
 #include <osg/ShapeDrawable>
 #include <osg/Material>
 #include <osg/DrawPixels>
-#include <osg/Point>
 #include <osg/StateAttribute>
 #include <osg/PointSprite>
 #include <osg/Camera>
@@ -18,18 +17,17 @@
 #include <osgGA/FlightManipulator>
 #include <osgGA/StateSetManipulator>
 #include <osgDB/ReadFile>
-#include <osgViewer/Viewer>
 #include <osgViewer/GraphicsWindow>
 #include <osgViewer/ViewerEventHandlers>
 #include <osgUtil/Optimizer>
 #include <osgUtil/SmoothingVisitor>
-#include <osgText/Text>
 #include <osgWidget/Box>
 
-#include "PointIntersector.h"
 #include <vector>
 #include <QString>
+#include "PointIntersector.h"
 #include "PointBuildBoard.h"
+#include "MeasureBuildBoard.h"
 ///**
 //	点信息板UI页面
 //*/
@@ -146,11 +144,11 @@ protected:
 	virtual bool handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa);
 	virtual void pick(osgViewer::View* view, const osgGA::GUIEventAdapter& ea);
 private:
-	//void CreateSelPoint(QString name, osg::Vec3 pos, osg::ref_ptr<osg::Geode>& geode);
-	/**
-	创建一个Build面板
-	*/
-	void CreateBoard(QString name, unsigned int primitiveIndex,osg::Vec3 pos, osg::ref_ptr<PointBuildBoard>& board);
+	////void CreateSelPoint(QString name, osg::Vec3 pos, osg::ref_ptr<osg::Geode>& geode);
+	///**
+	//创建一个Build面板
+	//*/
+	//void CreateBoard(QString name, unsigned int primitiveIndex,osg::Vec3 pos, osg::ref_ptr<PointBuildBoard>& board);
 private:
 	//创建一个选中点
 	//osg::ref_ptr<osg::Geode> createSelPoint(QString name, osg::Vec3& pos);
@@ -163,7 +161,8 @@ private:
 	/*osg::ref_ptr<osg::Geode> mOnePoint;
 	osg::ref_ptr<osg::Geode> mTwoPoint;*/
 	osg::ref_ptr<PointBuildBoard> mOneBoard;
-	osg::ref_ptr<PointBuildBoard> mTwoBoard;
+	/**测量*/
+	osg::ref_ptr<MeasureBuildBoard> mMeasure;
 	//创建HUD相机
 	osg::ref_ptr<osg::Camera> mHUDCamera;
 	/*std::string mOnePointName;

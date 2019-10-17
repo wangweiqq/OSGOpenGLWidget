@@ -6,6 +6,7 @@
 #include <osg/ShapeDrawable>
 #include <osg/Camera>
 #include <osg/Point>
+#include <osg/LineWidth>
 #include <osgUtil/SmoothingVisitor>
 class BuildBoard :
 	public osg::Referenced
@@ -25,9 +26,10 @@ public:
 	/**
 	创建Text标签
 	*/
-	osg::ref_ptr<osgText::Text> CreateText(std::string id, QString str, int fontSize = 10);
+	osg::ref_ptr<osgText::Text> CreateText(std::string id, QString str, int fontSize = 10, std::string fontfamily = "msyh.ttc");
 	osg::ref_ptr<osg::Geometry> CreateIcon(std::string id, osg::Vec4 color);
 	osg::ref_ptr<osg::Geode> createSelPoint(QString name, osg::Vec3& pos);
+	osg::ref_ptr<osg::Geode> CreateLine(QString name, osg::Vec4 color, std::vector<osg::Vec3> list);
 	/**
 		判断是否被点击
 	*/

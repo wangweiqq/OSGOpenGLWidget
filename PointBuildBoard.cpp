@@ -9,6 +9,11 @@ PointBuildBoard::PointBuildBoard(QString id, unsigned int posIndex, osg::Vec3 se
 	_cubrelpos.push_back(osg::Vec3(_cubwidth, _cubwidth, 0.0));
 	_cubrelpos.push_back(osg::Vec3(0.0, _cubwidth, 0.0));
 	CreateBox();
+	SetTitle(QString("Point #%1").arg(posIndex));
+	
+	SetStrX(QString::number(selPointPos.x(), 10, 4));
+	SetStrY(QString::number(selPointPos.y(), 10, 4));
+	SetStrZ(QString::number(selPointPos.z(), 10, 4));
 }
 
 PointBuildBoard::~PointBuildBoard()
@@ -28,6 +33,10 @@ void PointBuildBoard::ResetSelPos(unsigned int index, osg::Vec3 selPointPos) {
 	}
 	mSelPoint = createSelPoint(QString("%1").arg(index), selPointPos);
 	_viewer->getSceneData()->asGroup()->addChild(mSelPoint);
+	SetTitle(QString("Point #%1").arg(selPosIndex));
+	SetStrX(QString("%1").arg(selPointPos.x()));
+	SetStrY(QString("%1").arg(selPointPos.y()));
+	SetStrZ(QString("%1").arg(selPointPos.z()));
 }
 /**
 创建Box面板
@@ -53,19 +62,19 @@ void PointBuildBoard::CreateBox(osg::Vec4 boxColor, float width, float height) {
 		_geode->removeChild(_XLabel);
 		_XLabel.~ref_ptr();
 	}
-	_XLabel = CreateText("X", "X", _cubwidth - 2);
+	_XLabel = CreateText("X", "X", _cubwidth - 2, "msyhbd.ttc");
 	_XLabel->setColor(osg::Vec4(1.0, 1.0, 1.0, 1.0));
 	if (_YLabel.valid()) {
-		_geode->removeChild(_XLabel);
+		_geode->removeChild(_YLabel);
 		_YLabel.~ref_ptr();
 	}
-	_YLabel = CreateText("Y", "Y", _cubwidth - 2);
+	_YLabel = CreateText("Y", "Y", _cubwidth - 2, "msyhbd.ttc");
 	_YLabel->setColor(osg::Vec4(1.0, 1.0, 1.0, 1.0));
 	if (_ZLabel.valid()) {
-		_geode->removeChild(_XLabel);
+		_geode->removeChild(_ZLabel);
 		_ZLabel.~ref_ptr();
 	}
-	_ZLabel = CreateText("Z", "Z", _cubwidth - 2);
+	_ZLabel = CreateText("Z", "Z", _cubwidth - 2, "msyhbd.ttc");
 	_ZLabel->setColor(osg::Vec4(1.0, 1.0, 1.0, 1.0));
 	
 	//标题绘制
@@ -89,6 +98,9 @@ void PointBuildBoard::CreateBox(osg::Vec4 boxColor, float width, float height) {
 		mTxtZ.~ref_ptr();
 	}
 	mTxtZ = CreateText("Title", "Point #253504");
+
+
+
 	
 	UpdateBoxPos();	
 	

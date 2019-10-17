@@ -66,16 +66,16 @@ void BuildBoard::CreateBox(osg::Vec4 boxColor, float width, float height) {
 
 	_boxGm->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::QUADS, 0, 4));
 }
-osg::ref_ptr<osgText::Text> BuildBoard::CreateText(std::string id, QString str, int fontSize) {
+osg::ref_ptr<osgText::Text> BuildBoard::CreateText(std::string id, QString str, int fontSize,std::string fontfamily) {
 	//设置字体
 	osg::ref_ptr<osgText::Text> text = new osgText::Text;
 	text->setName(id);
-	text->setFont("msyh.ttc");
+	text->setFont(fontfamily);
 	QByteArray barr = str.toLocal8Bit();
 	char* bdata = barr.data();
 	text->setText(bdata);//动态传入ID号
 	text->setLineSpacing(0.25f);
-	text->setCharacterSize(fontSize);
+	text->setCharacterSize(fontSize);	
 	text->setColor(osg::Vec4(0.0, 0.0, 0.0, 1.0));
 	_geode->addChild(text);
 	return text;
@@ -138,6 +138,43 @@ osg::ref_ptr<osg::Geode> BuildBoard::createSelPoint(QString name, osg::Vec3& pos
 	osgUtil::SmoothingVisitor::smooth(*(geom.get()));
 	return geode;
 }
+osg::ref_ptr<osg::Geode> BuildBoard::CreateLine(QString name, osg::Vec4 color, std::vector<osg::Vec3> list)
+{
+	osg::ref_ptr<osg::Geode> geode = new osg::Geode();
+	QByteArray barr = name.toLocal8Bit();
+	char* bdata = barr.data();
+	geode->setName(bdata);
+	osg::ref_ptr<osg::Geometry> geom = new osg::Geometry();
+	osg::ref_ptr<osg::StateSet> stateSet = geom->getOrCreateStateSet();
+	osg::ref_ptr<osg::LineWidth> lineWidth = new osg::LineWidth;
+	lineWidth->setWidth(5.0);
+	stateSet->setAttribute(lineWidth, osg::StateAttribute::ON);
+	stateSet->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
+	stateSet->setMode(GL_POINT_SMOOTH, osg::StateAttribute::ON);
+	stateSet->setMode(GL_DEPTH_TEST, osg::StateAttribute::OFF);
+	//创建顶点数组，注意顺序逆时针
+	osg::ref_ptr<osg::Vec3Array> v = new osg::Vec3Array();
+	for (auto it = list.begin(); it != list.end(); ++it) {
+		v->push_back(*it);
+	}	
+	//设置顶点数据
+	geom->setVertexArray(v.get());
+	//创建颜色数组
+	osg::ref_ptr<osg::Vec4Array> vc = new osg::Vec4Array();
+	vc->push_back(color);
+	//设置颜色数组
+	geom->setColorArray(vc.get());
+	//设置颜色绑定方式为单个顶点
+	geom->setColorBinding(osg::Geometry::BIND_OVERALL);
+	//添加图元，
+	geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINE_STRIP, 0, v->size()));
+	//将图元添加至叶子节点
+	geode->addDrawable(geom.get());
+	//自动生成顶点法线(必须在addDrawable后)
+	osgUtil::SmoothingVisitor::smooth(*(geom.get()));
+	return geode;
+
+}
 void BuildBoard::ResetSelPos(osg::Vec3 selPointPos) {
 	mSelPointPos = selPointPos;
 	//世界坐标转屏幕坐标(确定Box的位置)
@@ -147,7 +184,7 @@ void BuildBoard::ResetSelPos(osg::Vec3 selPointPos) {
 		_tCamera->getViewport()->computeWindowMatrix();
 	//当前点偏移
 
-	mBoxPos = mSelPointPos * VPW + osg::X_AXIS * 10;
+	mBoxPos = mSelPointPos * VPW + osg::X_AXIS * 30;
 	osg::Viewport* viewport = _tCamera->getViewport();
 	unsigned int width = viewport->width();
 	unsigned int height = viewport->height();
