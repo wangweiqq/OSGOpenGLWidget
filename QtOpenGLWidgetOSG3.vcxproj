@@ -113,10 +113,13 @@
     </QtRcc>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="BuildBoard.cpp" />
     <ClCompile Include="LineIntersector.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="MeasureBuildBoard.cpp" />
     <ClCompile Include="OSGCameraManipulator.cpp" />
     <ClCompile Include="OSGPickHandler.cpp" />
+    <ClCompile Include="PointBuildBoard.cpp" />
     <ClCompile Include="PointIntersector.cpp" />
     <ClCompile Include="QtOpenGLWidgetOSG3.cpp" />
     <ClCompile Include="OSGWidget.cpp" />
@@ -137,9 +140,12 @@
     </QtMoc>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BuildBoard.h" />
     <ClInclude Include="LineIntersector.h" />
+    <ClInclude Include="MeasureBuildBoard.h" />
     <ClInclude Include="OSGCameraManipulator.h" />
     <ClInclude Include="OSGPickHandler.h" />
+    <ClInclude Include="PointBuildBoard.h" />
     <ClInclude Include="PointIntersector.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -401,6 +401,7 @@ void OSGWidget::onSelCloudPoint(OSGWidget::MeauseCloud meause) {
 		break;
 	}
 }
+
 void OSGWidget::onCylinder() {
 	osg::ref_ptr<osg::Group> pGroup = _mViewer->getSceneData()->asGroup();
 	osg::ref_ptr<osg::Group> root = dynamic_cast<osg::Group*>(_mViewer->getSceneData());
