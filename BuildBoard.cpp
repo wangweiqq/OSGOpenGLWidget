@@ -4,7 +4,8 @@
 BuildBoard::BuildBoard(QString _id, osg::ref_ptr<osgViewer::Viewer> viewer, osg::ref_ptr<osg::Camera> camera)
 	: osg::Referenced(), _viewer(viewer), _camera(camera) 
 {
-	QByteArray strArr = _id.toLocal8Bit();
+	QString strName = QString("TMP_%1").arg(_id);
+	QByteArray strArr = strName.toLocal8Bit();
 	mId = strArr.data();
 	_geode = new osg::Geode;
 	_geode->setName(mId);
@@ -52,7 +53,7 @@ void BuildBoard::CreateBox(osg::Vec4 boxColor, float width, float height) {
 	_boxrelpos.push_back(z_boxoffset + osg::Y_AXIS*_hbox);
 
 	_boxGm = new osg::Geometry;
-	_boxGm->setName("BoxPanel");
+	_boxGm->setName("TMP_BoxPanel");
 	_geode->addDrawable(_boxGm);
 		
 	UpdateBoxPos();
@@ -69,7 +70,11 @@ void BuildBoard::CreateBox(osg::Vec4 boxColor, float width, float height) {
 osg::ref_ptr<osgText::Text> BuildBoard::CreateText(std::string id, QString str, int fontSize,std::string fontfamily) {
 	//设置字体
 	osg::ref_ptr<osgText::Text> text = new osgText::Text;
-	text->setName(id);
+	QString tmp = id.c_str();
+	QString str1 = QString("TMP_%1").arg(tmp);
+	QByteArray strArr = str1.toLocal8Bit();
+	mId = strArr.data();
+	text->setName(mId);
 	text->setFont(fontfamily);
 	QByteArray barr = str.toLocal8Bit();
 	char* bdata = barr.data();
@@ -82,7 +87,11 @@ osg::ref_ptr<osgText::Text> BuildBoard::CreateText(std::string id, QString str, 
 }
 osg::ref_ptr<osg::Geometry> BuildBoard::CreateIcon(std::string id, osg::Vec4 color) {
 	osg::ref_ptr<osg::Geometry> gm = new osg::Geometry;
-	gm->setName(id);
+	QString tmp = id.c_str();
+	QString str = QString("TMP_%1").arg(tmp);
+	QByteArray strArr = str.toLocal8Bit();
+	mId = strArr.data();
+	gm->setName(mId);
 	//创建颜色数组
 	osg::ref_ptr<osg::Vec4Array> vc = new osg::Vec4Array();
 	vc->push_back(color);
@@ -95,7 +104,8 @@ osg::ref_ptr<osg::Geometry> BuildBoard::CreateIcon(std::string id, osg::Vec4 col
 }
 osg::ref_ptr<osg::Geode> BuildBoard::createSelPoint(QString name, osg::Vec3& pos) {
 	osg::ref_ptr<osg::Geode> geode = new osg::Geode();
-	QByteArray barr = name.toLocal8Bit();
+	QString tmp = QString("TMP_%1").arg(name);
+	QByteArray barr = tmp.toLocal8Bit();
 	char* bdata = barr.data();
 	geode->setName(bdata);
 	osg::ref_ptr<osg::Geometry> geom = new osg::Geometry();
@@ -141,7 +151,8 @@ osg::ref_ptr<osg::Geode> BuildBoard::createSelPoint(QString name, osg::Vec3& pos
 osg::ref_ptr<osg::Geode> BuildBoard::CreateLine(QString name, osg::Vec4 color, std::vector<osg::Vec3> list)
 {
 	osg::ref_ptr<osg::Geode> geode = new osg::Geode();
-	QByteArray barr = name.toLocal8Bit();
+	QString tmp = QString("TMP_%1").arg(name);
+	QByteArray barr = tmp.toLocal8Bit();
 	char* bdata = barr.data();
 	geode->setName(bdata);
 	osg::ref_ptr<osg::Geometry> geom = new osg::Geometry();

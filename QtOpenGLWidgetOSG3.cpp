@@ -1,13 +1,30 @@
+#pragma execution_character_set("utf-8")
 #include "QtOpenGLWidgetOSG3.h"
 #include "OSGWidget.h"
 #include <QColorDialog>
 #include <QButtonGroup>
+#include <QStandardItem>
+#include "CloudOperator.h"
+#include <osg/Vec3>
+#include <QVector3D>
 QtOpenGLWidgetOSG3::QtOpenGLWidgetOSG3(QWidget *parent)
 	: QMainWindow(parent)
 {
 	ui.setupUi(this);
+	pTreeModel = new QStandardItemModel(ui.treeView);
+	ui.treeView->setModel(pTreeModel);
+	ui.treeView->setEditTriggers(QAbstractItemView::NoEditTriggers);
+	pTreeModel->setHorizontalHeaderLabels(QStringList() << "模型节点");
 	/*QtOSGWidget* widget = new QtOSGWidget();
 	this->setCentralWidget(widget);*/
+	this->ui.btnCloud->hide();
+	this->ui.btnCylinder->hide();
+	this->ui.btnGlider->hide();
+	this->ui.btnQuad->hide();
+	this->ui.btnShape->hide();
+	this->ui.btnClear->hide();
+	this->ui.btnTest->hide();
+
 	connect(this->ui.btnCloud, SIGNAL(clicked()), this->ui.openGLWidget, SLOT(onCloud()));
 	connect(this->ui.btnCylinder, SIGNAL(clicked()), this->ui.openGLWidget, SLOT(onCylinder()));
 	connect(this->ui.btnGlider, SIGNAL(clicked()), this->ui.openGLWidget, SLOT(onGlider()));
@@ -33,8 +50,10 @@ QtOpenGLWidgetOSG3::QtOpenGLWidgetOSG3(QWidget *parent)
 	//this->ui.groupBox_2->setVisible(false);
 
 	radGroup = new QButtonGroup(this);
+	
 	radGroup->addButton(this->ui.radSelPoint);
 	radGroup->addButton(this->ui.radMeasure);
+	radGroup->addButton(this->ui.radSelPoints);
 
 	connect(radGroup, SIGNAL(buttonToggled(QAbstractButton*,bool)), this, SLOT(onSelPoint(QAbstractButton*, bool)));
 	/*connect(this->ui.radSelPoint, SIGNAL(toggled(bool )), this, SLOT(onSelPoint(bool)));
@@ -42,17 +61,23 @@ QtOpenGLWidgetOSG3::QtOpenGLWidgetOSG3(QWidget *parent)
 	connect(this->ui.btnReset, SIGNAL(clicked()), this, SLOT(onResetSelPoint()));
 	connect(this->ui.btnCancel, SIGNAL(clicked()), this, SLOT(onCancelSelPoint()));
 
-	connect(this, SIGNAL(selCloudPoint(OSGWidget::MeauseCloud)), this->ui.openGLWidget, SLOT(onSelCloudPoint(OSGWidget::MeauseCloud)));
+	connect(this, SIGNAL(selCloudPoint(MeauseCloud)), this->ui.openGLWidget, SLOT(onSelCloudPoint(MeauseCloud)));
 
 	connect(this->ui.btnTest, SIGNAL(clicked()), this->ui.openGLWidget, SLOT(onTest()));
+
+
+	connect(this->ui.openGLWidget, SIGNAL(FrameSelectPoints(QString,std::map<unsigned int, osg::Vec3>)), this, SLOT(onFrameSelectResult(QString, std::map<unsigned int, osg::Vec3>)));
 }
 void QtOpenGLWidgetOSG3::onSelPoint(QAbstractButton *button, bool checked) {
 	if (checked) {
 		if (this->ui.radSelPoint == button) {
-			emit selCloudPoint(OSGWidget::MeauseCloud::ONEPOINT);
+			emit selCloudPoint(MeauseCloud::ONEPOINT);
 		}
 		else if (this->ui.radMeasure == button) {
-			emit selCloudPoint(OSGWidget::MeauseCloud::TWOMEAUSE);
+			emit selCloudPoint(MeauseCloud::TWOMEAUSE);
+		}
+		else if (this->ui.radSelPoints == button) {
+			emit selCloudPoint(MeauseCloud::BOXSELPOINTS);
 		}
 	}
 }
@@ -60,15 +85,17 @@ void QtOpenGLWidgetOSG3::onResetSelPoint() {
 	radGroup->setExclusive(false);
 	this->ui.radSelPoint->setChecked(false);
 	this->ui.radMeasure->setChecked(false);
+	this->ui.radSelPoints->setChecked(false);
 	radGroup->setExclusive(true);
-	emit selCloudPoint(OSGWidget::MeauseCloud::RESET);
+	emit selCloudPoint(MeauseCloud::RESET);
 }
 void QtOpenGLWidgetOSG3::onCancelSelPoint() {
 	radGroup->setExclusive(false);
 	this->ui.radSelPoint->setChecked(false);
 	this->ui.radMeasure->setChecked(false);
+	this->ui.radSelPoints->setChecked(false);
 	radGroup->setExclusive(true);
-	emit selCloudPoint(OSGWidget::MeauseCloud::NONE);
+	emit selCloudPoint(MeauseCloud::NONE);
 }
 
 void QtOpenGLWidgetOSG3::onShowHeightRamp() {
@@ -118,4 +145,20 @@ void QtOpenGLWidgetOSG3::onRecHeightRamp(int, QColor, QColor) {
 }
 void QtOpenGLWidgetOSG3::on_btnTest_clicked() {
 	std::cout << "测试2" << std::endl;
+}
+
+void  QtOpenGLWidgetOSG3::onFrameSelectResult(QString nodeName, std::map<unsigned int, osg::Vec3> list) {
+	//std::cout << "onFrameSelectResult = " << nodeName.toLocal8Bit().data()<<",size = " <<list.size() << std::endl;
+	pTreeModel->clear();
+	pTreeModel->setHorizontalHeaderLabels(QStringList() << "模型节点");
+	QStandardItem* root = new QStandardItem(nodeName);
+	pTreeModel->appendRow(root);
+	for (auto it = list.begin(); it != list.end(); ++it) {
+		QStandardItem* item = new QStandardItem(QString("#%1").arg((*it).first));
+		osg::Vec3 v = (*it).second;
+		QVector3D v3(v.x(), v.y(), v.z());
+		item->setData(v3,Qt::UserRole);
+		root->appendRow(item);
+	}
+	ui.treeView->expandAll();
 }

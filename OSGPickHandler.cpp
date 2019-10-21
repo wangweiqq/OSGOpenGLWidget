@@ -4,6 +4,9 @@
 #include <QString>
 #include <iostream>
 #include <sstream>
+#include <set>
+extern bool IsVerfyModelName(QString str);
+
 //PointBuildBoard::PointBuildBoard(QString _id, osg::Vec3 selPointPos, osg::ref_ptr<osgViewer::Viewer> viewer, osg::ref_ptr<osg::Camera> camera):osg::Referenced(), mSelPointPos(selPointPos), _viewer(viewer), _camera(camera){
 //	QByteArray strArr = _id.toLocal8Bit();
 //	mId = strArr.data();
@@ -605,7 +608,7 @@ OSGPickHandler::OSGPickHandler(osgViewer::Viewer* viewer):osgGA::GUIEventHandler
 	mOnePoint = nullptr;
 	mTwoPoint = nullptr;*/
 	mHUDCamera = new osg::Camera;
-	mHUDCamera->setName("ULDCamera");
+	mHUDCamera->setName("TMP_ULDCamera");
 	mHUDCamera->setViewMatrix(osg::Matrix::identity());
 	mHUDCamera->setRenderOrder(osg::Camera::POST_RENDER);
 	mHUDCamera->setClearMask(GL_DEPTH_BUFFER_BIT);
@@ -639,158 +642,230 @@ bool OSGPickHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAd
 	if (!mViewer.valid()) {
 		return false;
 	}
-	switch (ea.getEventType())
-	{
-	case osgGA::GUIEventAdapter::PUSH:
-	{
-		if (ea.getButton() == osgGA::GUIEventAdapter::LEFT_MOUSE_BUTTON) {
-			if (mOneBoard.valid()) {
-				if (mOneBoard->IsCheckClick(osg::Vec3(ea.getX(), ea.getY(), 0)))
+	/*if (allowPointsNum == BOXSELPOINTS) {
+		return mFrameSelect->FramePick(ea);
+	}*/
+	else {
+		switch (ea.getEventType())
+		{
+		case osgGA::GUIEventAdapter::PUSH:
+		{
+			if (ea.getButton() == osgGA::GUIEventAdapter::LEFT_MOUSE_BUTTON) {
+				switch (allowPointsNum)
 				{
-					std::cout << "allow move" << std::endl;
-					mOneBoard->RecordMoveOffset(osg::Vec3(ea.getX(), ea.getY(), 0));
+				case MeauseCloud::ONEPOINT:
+				case MeauseCloud::TWOMEAUSE:
+				{
+					if (mOneBoard.valid()) {
+						if (mOneBoard->IsCheckClick(osg::Vec3(ea.getX(), ea.getY(), 0)))
+						{
+							//std::cout << "allow move" << std::endl;
+							mOneBoard->RecordMoveOffset(osg::Vec3(ea.getX(), ea.getY(), 0));
+							return true;
+						}
+					}
+					if (mMeasure.valid()) {
+						if (mMeasure->IsCheckClick(osg::Vec3(ea.getX(), ea.getY(), 0)))
+						{
+							mMeasure->RecordMoveOffset(osg::Vec3(ea.getX(), ea.getY(), 0));
+							return true;
+						}
+					}
+					pick(mViewer, ea);
+				}
+				break;
+				case BOXSELPOINTS:
+					mFrameSelect.~ref_ptr();
+					mFrameSelect = new FrameSelectCloud(mViewer);
+					mFrameSelect->SetFirstPos(osg::Vec2(ea.getX(), ea.getY()));
+					return true;
+					break;
+				}
+			}
+		}
+		break;
+		case osgGA::GUIEventAdapter::RELEASE:
+		{
+			if (ea.getButton() == osgGA::GUIEventAdapter::LEFT_MOUSE_BUTTON) {
+				if (mOneBoard.valid()) {
+					mOneBoard->IsAllowMove = false;
+				}
+				else if (mMeasure.valid()) {
+					mMeasure->IsAllowMove = false;
+				}
+			}
+			if (mFrameSelect.valid() && mFrameSelect->IsAllowDrag) {
+				mFrameSelect->DragFrame(osg::Vec2(ea.getX(), ea.getY()));
+				int c1 = mFrameSelect->list.size();
+				if (mFrameSelectCallBack != nullptr && mFrameSelect->list.size() > 0) {
+					mFrameSelectCallBack(mFrameSelect->mSelNodeName,mFrameSelect->list);
+				}
+				mFrameSelect->IsAllowDrag = false;
+				return true;
+			}
+		}
+		break;
+		case osgGA::GUIEventAdapter::DRAG:
+		{
+			if (mFrameSelect.valid() && mFrameSelect->IsAllowDrag) {
+				/*if (mFrameSelect->DragFrame(osg::Vec2(ea.getX(), ea.getY()))) {
+					return true;
+				}*/
+				mFrameSelect->DrawSelRect(osg::Vec2(ea.getX(), ea.getY()));
+				return true;
+			}
+			else {
+				if (mOneBoard.valid() && mOneBoard->IsAllowMove) {
+					//std::cout << "move" << std::endl;
+					mOneBoard->MoveBuildBoard(osg::Vec3(ea.getX(), ea.getY(), 0));
+					return true;
+				}
+				else if (mMeasure.valid() && mMeasure->IsAllowMove) {
+					mMeasure->MoveBuildBoard(osg::Vec3(ea.getX(), ea.getY(), 0));
 					return true;
 				}
 			}
-			if (mMeasure.valid()) {
-				if (mMeasure->IsCheckClick(osg::Vec3(ea.getX(), ea.getY(), 0)))
-				{
-					mMeasure->RecordMoveOffset(osg::Vec3(ea.getX(), ea.getY(), 0));
-					return true;
-				}
-			}
-			pick(mViewer, ea);
 		}
-		else if (ea.getButton() == osgGA::GUIEventAdapter::RIGHT_MOUSE_BUTTON) {
-
+		break;
 		}
-		//QByteArray barr = QString("鼠标PUSH：").toLocal8Bit();
-		//std::cout << barr.data() << std::endl;
-	}
-	break;
-	case osgGA::GUIEventAdapter::RELEASE:
-	{
-		if (ea.getButton() == osgGA::GUIEventAdapter::LEFT_MOUSE_BUTTON) {
-			if (mOneBoard.valid()) {
-				mOneBoard->IsAllowMove = false;
-			}
-			else if (mMeasure.valid()) {
-				mMeasure->IsAllowMove = false;
-			}
-		}
-	}
-	break;
-	case osgGA::GUIEventAdapter::DRAG:
-	{
-		if (mOneBoard.valid() && mOneBoard->IsAllowMove) {
-			//std::cout << "move" << std::endl;
-			mOneBoard->MoveBuildBoard(osg::Vec3(ea.getX(), ea.getY(), 0));
-			return true;
-		}
-		else if (mMeasure.valid() && mMeasure->IsAllowMove) {
-			mMeasure->MoveBuildBoard(osg::Vec3(ea.getX(), ea.getY(), 0));
-			return true;
-		}
-	}
-	break;
 	}
 	return false;
 }
 void OSGPickHandler::pick(osgViewer::View* view, const osgGA::GUIEventAdapter& ea){
-	//osg::ref_ptr<PointIntersector> intersector = new PointIntersector(osgUtil::Intersector::WINDOW, osg::Vec3(ea.getX() - 0.1, ea.getY() - 0.1, 0), osg::Vec3(ea.getX() + 0.1, ea.getY() + 0.1, 0));
-	std::cout << "mouse click = (" << ea.getX() << "," << ea.getY() << std::endl;
-	osg::ref_ptr<PointIntersector> intersector = new PointIntersector(osgUtil::Intersector::WINDOW, ea.getX(), ea.getY());
-	//intersector->setOffset(0.5f);
-	osgUtil::IntersectionVisitor iv(intersector.get());
-	view->getCamera()->accept(iv);
-	
-	if (intersector->containsIntersections())
-	{
-		std::vector<std::pair<unsigned int,osg::Vec3>> points;
-		for (auto iter = intersector->getIntersections().begin(); iter != intersector->getIntersections().end(); iter++)
-		{
-			osg::Vec3 pos = iter->getWorldIntersectNormal();//iter->getWorldIntersectPoint();
-			/*std::cout << (iter->nodePath).back()->getName() << " , " << (iter->nodePath).back()->className() << std::endl;
-			std::cout << "vertex indices = (" << pos.x() << "," << pos.y() << "," << pos.z() << ")" << std::endl;
-			std::cout << "  ratio " << iter->ratio << std::endl;
-			std::cout << "  point " << iter->localIntersectionPoint.x()<<","<< iter->localIntersectionPoint.y() << ","<< iter->localIntersectionPoint.z() << std::endl;
-			std::cout << "  normal " << iter->localIntersectionNormal.x()<<","<<iter->localIntersectionNormal.y() << ","<<iter->localIntersectionNormal.z()  << std::endl;
-			std::cout << "  indices " << iter->indexList.size() << std::endl;
-			std::cout << "  primitiveIndex " << iter->primitiveIndex << std::endl;
-			const osgUtil::LineSegmentIntersector::Intersection::IndexList& indices = iter->indexList;
-			for (unsigned int i = 0; i < indices.size(); ++i)
+	float x1 = ea.getX();
+	float y1 = ea.getY();
+	float offset = 3;
+	osg::ref_ptr<osgUtil::PolytopeIntersector> intersector2 = new osgUtil::PolytopeIntersector(osgUtil::Intersector::WINDOW, x1 - offset, y1 - offset, x1 + offset, y1 + offset);
+	osgUtil::IntersectionVisitor iv2(intersector2);
+	view->getCamera()->accept(iv2);
+	std::cout << "mouse points = ("<<ea.getX()<<","<<ea.getY()<<")" << std::endl;
+	if (intersector2->containsIntersections()) {
+		//std::cout << " =============PolytopeIntersector================ " << std::endl;
+		auto iter = intersector2->getIntersections().begin();
+		//std::vector<std::pair<unsigned int, osg::Vec3>> points;
+		//int size = intersector2->getIntersections().size();
+		for (; iter != intersector2->getIntersections().end(); ++iter) {
+			//if ((iter->nodePath).back()->getName() == "CloudPoints")
+			if(IsVerfyModelName((iter->nodePath).back()->getName().c_str()))
 			{
-				std::cout << "        vertex indices [" << i << "] = " << indices[i] << std::endl;
+				DrawTips(iter->primitiveIndex, iter->localIntersectionPoint);
+				break;
+			}
+			double                          distance  = iter->distance;     ///< distance from reference plane
+			double                          maxDistance = iter->maxDistance;  ///< maximum distance of intersection points from reference plane
+			osg::NodePath                   nodePath = iter->nodePath;
+			osg::ref_ptr<osg::Drawable>     drawable = iter->drawable;
+			//osg::ref_ptr<osg::RefMatrix>    matrix;
+			osg::Vec3                       localIntersectionPoint = iter->localIntersectionPoint;  ///< center of all intersection points
+			unsigned int                    numIntersectionPoints = iter->numIntersectionPoints;
+			//osg::Plane::Vec3_type                       intersectionPoints[MaxNumIntesectionPoints];
+			unsigned int                    primitiveIndex = iter->primitiveIndex; ///< primitive index
+			int a = 0;
+			/*for (auto it = nodePath.begin(); it != nodePath.end(); ++it) {
+				std::string name = (*it)->getName();
+				std::string cname = (*it)->className();
+				std::cout << name << " , " << cname << std::endl;
 			}*/
-			//std::cout << iter->nodePath->back()->className() << std::endl;
-			points.push_back(std::make_pair(iter->primitiveIndex,iter->getWorldIntersectPoint()));
+			std::cout << (iter->nodePath).back()->getName() << " , " << (iter->nodePath).back()->className() << std::endl;
+			std::cout << "primitiveIndex = " << primitiveIndex<<",localIntersectionPoint("<< localIntersectionPoint.x()<<","<< localIntersectionPoint.y()<<","<< localIntersectionPoint.z()<<")" << ",distance = " << distance << ",maxDistance = " << maxDistance << ",numIntersectionPoints = " << numIntersectionPoints << std::endl;
 		}
-		if (points.size() > 0) {
-			DrawTips(points[0].first,points[0].second);
-			/*osg::Group* root = mViewer->getSceneData()->asGroup();
-			int count = root->getNumChildren();
-			for (int i = 0; i < count; ++i) {
-				osg::Group* g = root->getChild(i)->asGroup();
-				if (g) {
-					std::cout << g->getName() << std::endl;
-					if (g->getName() == "PickGroup") {
-						for (int j = 0; j < g->getNumChildren(); ++j) {
-							osg::Geode* geode = g->getChild(j)->asGeode();
-							osg::Geometry* geometry = geode->getDrawable(0)->asGeometry();
-							osg::Vec3Array* arr = dynamic_cast<osg::Vec3Array*> (geometry->getVertexArray());
-							for (int z = 0; z < arr->size(); ++z) {
-								std::cout << "Get Point = (" << arr->at(z).x() << "," << arr->at(z).y() << "," << arr->at(z).z() << ")" << std::endl;
-							}
-						}
-					}
-				}
-			}*/
-		}
-		////osg::Vec3d worldpoint = CRealInteractionUtil::getNeartestPoint(intersector, osg::Vec2f(ea.getX(), ea.getY()), transformMatrix*vpw);
-		//PointIntersector::Intersection result = *intersector->getIntersections().begin();
-		///*for (auto iter = result.nodePath.begin(); iter != result.nodePath.end(); ++iter) {
-		// std::cout << (*iter)->getName() << " , " << (*iter)->className() << std::endl;
-		//}*/
-		//std::cout << result.nodePath.back()->getName() << " , " << result.nodePath.back()->className() << std::endl;
-		///*for (auto iter = result.nodePath.begin(); iter != result.nodePath.end(); ++iter) {
-		// std::cout << (*iter)->getName() << " , " << (*iter)->className() << std::endl;
-		//}*/
-		///*PointIntersector::Intersection::IndexList& vil = result.indexList;
-		//for (unsigned int i = 0; i < vil.size(); ++i)
-		//{
-		// std::cout << "        vertex indices [" << i << "] = " << vil[i] << std::endl;
-		//}*/
-	}
-	//osgUtil::LineSegmentIntersector::Intersections intersections;
-	//std::string gdlist = "";
-	//if (view->computeIntersections(ea, intersections))
+		//std::cout << " ============================= " << std::endl;		
+	}	
+	//osg::ref_ptr<PointIntersector> intersector = new PointIntersector(osgUtil::Intersector::WINDOW, ea.getX(), ea.getY());
+	////intersector->setOffset(0.5f);
+	//osgUtil::IntersectionVisitor iv(intersector.get());
+	//view->getCamera()->accept(iv);
+	//
+	//if (intersector->containsIntersections())
 	//{
-	//	for (osgUtil::LineSegmentIntersector::Intersections::iterator hitr = intersections.begin();
-	//	hitr != intersections.end();
-	//		++hitr)
+	//	std::cout << " ===============PointIntersector============== " << std::endl;
+	//	std::vector<std::pair<unsigned int,osg::Vec3>> points;
+	//	for (auto iter = intersector->getIntersections().begin(); iter != intersector->getIntersections().end(); iter++)
 	//	{
-	//		std::ostringstream os;
-	//		if (!hitr->nodePath.empty() && !(hitr->nodePath.back()->getName().empty()))
+	//		osg::Vec3 pos = iter->getWorldIntersectNormal();//iter->getWorldIntersectPoint();
+	//		std::cout << (iter->nodePath).back()->getName() << " , " << (iter->nodePath).back()->className() << std::endl;
+	//		std::cout << "primitiveIndex = " << iter->primitiveIndex << " point (" << iter->localIntersectionPoint.x() << "," << iter->localIntersectionPoint.y() << "," << iter->localIntersectionPoint.z()<<"),getWorldIntersectNormal("<< pos.x()<<","<<pos.y()<<","<<pos.z()<<")" <<std::endl;
+	//		/*std::cout << "vertex indices = (" << pos.x() << "," << pos.y() << "," << pos.z() << ")" << std::endl;
+	//		std::cout << "  ratio " << iter->ratio << std::endl;
+	//		std::cout << "  point " << iter->localIntersectionPoint.x()<<","<< iter->localIntersectionPoint.y() << ","<< iter->localIntersectionPoint.z() << std::endl;
+	//		std::cout << "  normal " << iter->localIntersectionNormal.x()<<","<<iter->localIntersectionNormal.y() << ","<<iter->localIntersectionNormal.z()  << std::endl;
+	//		std::cout << "  indices " << iter->indexList.size() << std::endl;
+	//		std::cout << "  primitiveIndex " << iter->primitiveIndex << std::endl;
+	//		const osgUtil::LineSegmentIntersector::Intersection::IndexList& indices = iter->indexList;
+	//		for (unsigned int i = 0; i < indices.size(); ++i)
 	//		{
-	//			// the geodes are identified by name.
-	//			os << "Object \"" << hitr->nodePath.back()->getName() << "\"" << std::endl;
-	//		}
-	//		else if (hitr->drawable.valid())
-	//		{
-	//			os << "Object \"" << hitr->drawable->className() << "\"" << std::endl;
-	//		}
-	//		//os << "        local coords vertex(" << hitr->getLocalIntersectPoint() << ")" << "  normal(" << hitr->getLocalIntersectNormal() << ")" << std::endl;
-	//		//os << "        world coords vertex(" << hitr->getWorldIntersectPoint() << ")" << "  normal(" << hitr->getWorldIntersectNormal() << ")" << std::endl;
-	//		const osgUtil::LineSegmentIntersector::Intersection::IndexList& vil = hitr->indexList;
-	//		for (unsigned int i = 0; i < vil.size(); ++i)
-	//		{
-	//			os << "        vertex indices [" << i << "] = " << vil[i] << std::endl;
-	//		}
-	//		gdlist += os.str();
-	//		std::cout << gdlist << std::endl;
-	//		std::cout << "===============" << std::endl;
+	//			std::cout << "        vertex indices [" << i << "] = " << indices[i] << std::endl;
+	//		}*/
+	//		//std::cout << iter->nodePath->back()->className() << std::endl;
+	//		//points.push_back(std::make_pair(iter->primitiveIndex,iter->getWorldIntersectPoint()));
 	//	}
+	//	std::cout << " ===============PointIntersector============== " << std::endl;
+	//	if (points.size() > 0) {
+	//		//DrawTips(points[0].first,points[0].second);
+	//		/*osg::Group* root = mViewer->getSceneData()->asGroup();
+	//		int count = root->getNumChildren();
+	//		for (int i = 0; i < count; ++i) {
+	//			osg::Group* g = root->getChild(i)->asGroup();
+	//			if (g) {
+	//				std::cout << g->getName() << std::endl;
+	//				if (g->getName() == "PickGroup") {
+	//					for (int j = 0; j < g->getNumChildren(); ++j) {
+	//						osg::Geode* geode = g->getChild(j)->asGeode();
+	//						osg::Geometry* geometry = geode->getDrawable(0)->asGeometry();
+	//						osg::Vec3Array* arr = dynamic_cast<osg::Vec3Array*> (geometry->getVertexArray());
+	//						for (int z = 0; z < arr->size(); ++z) {
+	//							std::cout << "Get Point = (" << arr->at(z).x() << "," << arr->at(z).y() << "," << arr->at(z).z() << ")" << std::endl;
+	//						}
+	//					}
+	//				}
+	//			}
+	//		}*/
+	//	}
+	//	////osg::Vec3d worldpoint = CRealInteractionUtil::getNeartestPoint(intersector, osg::Vec2f(ea.getX(), ea.getY()), transformMatrix*vpw);
+	//	//PointIntersector::Intersection result = *intersector->getIntersections().begin();
+	//	///*for (auto iter = result.nodePath.begin(); iter != result.nodePath.end(); ++iter) {
+	//	// std::cout << (*iter)->getName() << " , " << (*iter)->className() << std::endl;
+	//	//}*/
+	//	//std::cout << result.nodePath.back()->getName() << " , " << result.nodePath.back()->className() << std::endl;
+	//	///*for (auto iter = result.nodePath.begin(); iter != result.nodePath.end(); ++iter) {
+	//	// std::cout << (*iter)->getName() << " , " << (*iter)->className() << std::endl;
+	//	//}*/
+	//	///*PointIntersector::Intersection::IndexList& vil = result.indexList;
+	//	//for (unsigned int i = 0; i < vil.size(); ++i)
+	//	//{
+	//	// std::cout << "        vertex indices [" << i << "] = " << vil[i] << std::endl;
+	//	//}*/
 	//}
+	////osgUtil::LineSegmentIntersector::Intersections intersections;
+	////std::string gdlist = "";
+	////if (view->computeIntersections(ea, intersections))
+	////{
+	////	for (osgUtil::LineSegmentIntersector::Intersections::iterator hitr = intersections.begin();
+	////	hitr != intersections.end();
+	////		++hitr)
+	////	{
+	////		std::ostringstream os;
+	////		if (!hitr->nodePath.empty() && !(hitr->nodePath.back()->getName().empty()))
+	////		{
+	////			// the geodes are identified by name.
+	////			os << "Object \"" << hitr->nodePath.back()->getName() << "\"" << std::endl;
+	////		}
+	////		else if (hitr->drawable.valid())
+	////		{
+	////			os << "Object \"" << hitr->drawable->className() << "\"" << std::endl;
+	////		}
+	////		//os << "        local coords vertex(" << hitr->getLocalIntersectPoint() << ")" << "  normal(" << hitr->getLocalIntersectNormal() << ")" << std::endl;
+	////		//os << "        world coords vertex(" << hitr->getWorldIntersectPoint() << ")" << "  normal(" << hitr->getWorldIntersectNormal() << ")" << std::endl;
+	////		const osgUtil::LineSegmentIntersector::Intersection::IndexList& vil = hitr->indexList;
+	////		for (unsigned int i = 0; i < vil.size(); ++i)
+	////		{
+	////			os << "        vertex indices [" << i << "] = " << vil[i] << std::endl;
+	////		}
+	////		gdlist += os.str();
+	////		std::cout << gdlist << std::endl;
+	////		std::cout << "===============" << std::endl;
+	////	}
+	////}
 }
 /**重置*/
 void OSGPickHandler::Reset() {
@@ -814,17 +889,25 @@ void OSGPickHandler::Reset() {
 	if (mMeasure.valid()) {
 		mMeasure.~ref_ptr();
 	}
-	allowPointsNum = 0;
+	if (mFrameSelect.valid()) {
+		mFrameSelect.~ref_ptr();
+	}
+	//allowPointsNum = MeauseCloud::RESET;
 }
 /**画一个点*/
 void OSGPickHandler::OnePoint() {
 	Reset();
-	allowPointsNum = 1;
+	allowPointsNum = MeauseCloud::ONEPOINT;
 }
 /**画二个点*/
 void OSGPickHandler::TwoMeause() {
 	Reset();
-	allowPointsNum = 2;
+	allowPointsNum = MeauseCloud::TWOMEAUSE;
+}
+//框选点
+void OSGPickHandler::FrameSelPoints() {
+	Reset();
+	allowPointsNum = MeauseCloud::BOXSELPOINTS;
 }
 ///**
 //创建面板
@@ -848,7 +931,7 @@ void OSGPickHandler::TwoMeause() {
 void OSGPickHandler::DrawTips(unsigned int primitiveIndex,osg::Vec3 pos) {
 	switch (allowPointsNum)
 	{
-	case 1:
+	case MeauseCloud::ONEPOINT:
 	{
 		mOneBoard.~ref_ptr();
 		mOneBoard = new PointBuildBoard("BuildBoard_1", primitiveIndex, pos, mViewer, mHUDCamera);
@@ -870,7 +953,7 @@ void OSGPickHandler::DrawTips(unsigned int primitiveIndex,osg::Vec3 pos) {
 		mOneBoard->SetStrZ(QString("%1").arg(pos.z()));*/
 	}
 		break;
-	case 2:
+	case MeauseCloud::TWOMEAUSE:
 	{
 		if (!mOneBoard.valid()) {
 			mMeasure.~ref_ptr();

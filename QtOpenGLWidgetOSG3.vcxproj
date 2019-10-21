@@ -114,6 +114,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="BuildBoard.cpp" />
+    <ClCompile Include="FrameSelectCloud.cpp" />
     <ClCompile Include="LineIntersector.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MeasureBuildBoard.cpp" />
@@ -141,6 +142,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BuildBoard.h" />
+    <ClInclude Include="CloudOperator.h" />
+    <ClInclude Include="FrameSelectCloud.h" />
     <ClInclude Include="LineIntersector.h" />
     <ClInclude Include="MeasureBuildBoard.h" />
     <ClInclude Include="OSGCameraManipulator.h" />

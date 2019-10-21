@@ -362,10 +362,10 @@ void OSGWidget::keyReleaseEvent(QKeyEvent *event) {
 	QOpenGLWidget::keyReleaseEvent(event);
 }
 //点云测量
-void OSGWidget::onSelCloudPoint(OSGWidget::MeauseCloud meause) {
+void OSGWidget::onSelCloudPoint(MeauseCloud meause) {
 	switch (meause)
 	{
-	case OSGWidget::RESET:
+	case MeauseCloud::RESET:
 	{
 		if (_mPickHandler.valid()) {
 			_mPickHandler->Reset();
@@ -373,7 +373,7 @@ void OSGWidget::onSelCloudPoint(OSGWidget::MeauseCloud meause) {
 		}
 	}
 		break;
-	case OSGWidget::ONEPOINT:
+	case MeauseCloud::ONEPOINT://选点云上一点
 	{
 		if (!_mPickHandler.valid()) {
 			_mPickHandler = new OSGPickHandler(_mViewer);
@@ -382,7 +382,7 @@ void OSGWidget::onSelCloudPoint(OSGWidget::MeauseCloud meause) {
 		_mPickHandler->OnePoint();
 	}
 		break;
-	case OSGWidget::TWOMEAUSE:
+	case MeauseCloud::TWOMEAUSE://测量两点距离
 	{
 		if (!_mPickHandler.valid()) {
 			_mPickHandler = new OSGPickHandler(_mViewer);
@@ -391,7 +391,16 @@ void OSGWidget::onSelCloudPoint(OSGWidget::MeauseCloud meause) {
 		_mPickHandler->TwoMeause();
 	}
 		break;
-	case OSGWidget::NONE:
+	case MeauseCloud::BOXSELPOINTS://框选，选择一系列点
+		if (!_mPickHandler.valid()) {
+			_mPickHandler = new OSGPickHandler(_mViewer);
+			_mPickHandler->mFrameSelectCallBack = std::bind(&OSGWidget::FrameSelectResult,this,std::placeholders::_1,std::placeholders::_2);
+			//_mPickHandler->mCallback = std::bind(&OSGWidget::TestCallBack, this);
+			_mViewer->addEventHandler(_mPickHandler);
+		}
+		_mPickHandler->FrameSelPoints();
+		break;
+	case MeauseCloud::NONE:
 	default:
 		if (_mPickHandler.valid()) {
 			_mViewer->removeEventHandler(_mPickHandler);
@@ -400,8 +409,15 @@ void OSGWidget::onSelCloudPoint(OSGWidget::MeauseCloud meause) {
 		this->update();
 		break;
 	}
+	this->update();
 }
+void OSGWidget::TestCallBack() {
 
+}
+void OSGWidget::FrameSelectResult(QString nodeName, std::map<unsigned int, osg::Vec3> list) {
+	std::cout << "FrameSelectResult size = " << list.size() << std::endl;
+	emit FrameSelectPoints(nodeName,list);
+}
 void OSGWidget::onCylinder() {
 	osg::ref_ptr<osg::Group> pGroup = _mViewer->getSceneData()->asGroup();
 	osg::ref_ptr<osg::Group> root = dynamic_cast<osg::Group*>(_mViewer->getSceneData());
@@ -735,7 +751,7 @@ osg::ref_ptr<osg::Vec3Array> OSGWidget::ReadModelFile(std::string filePath) {
 //创建四边形
 osg::ref_ptr<osg::Node> OSGWidget::createQuad() {
 	osg::ref_ptr<osg::Geode> geode = new osg::Geode();
-	QByteArray barr = QString("四边形").toLocal8Bit();
+	QByteArray barr = QString("TMP_四边形").toLocal8Bit();
 	char* bdata = barr.data();
 	geode->setName(bdata);
 	osg::ref_ptr<osg::Geometry> geom = new osg::Geometry();
@@ -809,14 +825,14 @@ osg::ref_ptr<osg::Node> OSGWidget::createCylinder() {
 	//构造测试圆柱
 	osg::ref_ptr<osg::Cylinder> cylinder = new osg::Cylinder(osg::Vec3(0.f, 0.f, 0.f), 0.25f, 0.5f);
 	osg::ref_ptr<osg::ShapeDrawable> sd = new osg::ShapeDrawable(cylinder);
-	QByteArray barr = QString("zidingyi1").toLocal8Bit();
+	QByteArray barr = QString("TMP_zidingyi1").toLocal8Bit();
 	char* bdata = barr.data();
 	sd->setName(barr);
 	sd->setColor(osg::Vec4(1.0, 0.0, 0.0, 1.0));
 	//叶子节点
 	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
 	geode->addDrawable(sd);
-	barr = QString("圆柱").toLocal8Bit();
+	barr = QString("TMP_圆柱").toLocal8Bit();
 	bdata = barr.data();
 	geode->setName(bdata);
 	//osg::ref_ptr<osg::StateSet> stateSet = geode->getOrCreateStateSet();
@@ -827,7 +843,7 @@ osg::ref_ptr<osg::Node> OSGWidget::createCylinder() {
 }
 osg::ref_ptr<osg::Node> OSGWidget::createOSGGlider() {
 	osg::ref_ptr<osg::Node> node = osgDB::readRefNodeFile("glider.osg");
-	QByteArray barr = QString("飞机").toLocal8Bit();
+	QByteArray barr = QString("TMP_飞机").toLocal8Bit();
 	char* bdata = barr.data();
 	node->setName(bdata);
 	return node.get();
@@ -838,8 +854,13 @@ osg::ref_ptr<osg::Node> OSGWidget::createCloud() {
 	QByteArray barr = QString("CloudPoints").toLocal8Bit();
 	char* bdata = barr.data();
 	geode->setName(barr);
+
+	osg::StateSet* set = geode->getOrCreateStateSet();
+	osg::PointSprite *sprite = new osg::PointSprite();
+	set->setTextureAttributeAndModes(0, sprite, osg::StateAttribute::ON);
+
 	osg::ref_ptr<osg::Geometry> geom = new osg::Geometry();
-	geom->setName("cloudpointsgeometry");
+	geom->setName("TMP_cloudpointsgeometry");
 	//osg::ref_ptr<osg::DrawPixels> geom = new osg::DrawPixels;
 	//创建顶点数组，注意顺序逆时针
 	osg::ref_ptr<osg::Vec3Array> v = ReadModelFile("model.txt");
@@ -934,7 +955,7 @@ osg::ref_ptr<osg::Node> OSGWidget::createCloud() {
 //}
 osg::ref_ptr<osg::Node> OSGWidget::createShape() {
 	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
-	QByteArray barr = QString("预定义几何体").toLocal8Bit();
+	QByteArray barr = QString("TMP_预定义几何体").toLocal8Bit();
 	char* bdata = barr.data();
 	geode->setName(bdata);
 	float radius = 0.8f;
@@ -1076,7 +1097,7 @@ osg::ref_ptr<osg::Node> OSGWidget::createCoordinate() {
 	geode->getOrCreateStateSet()->setMode(GL_LIGHTING,
 		osg::StateAttribute::OFF);
 	geode->addDrawable(geom.get());
-	QByteArray barr = QString("CustomCoordinate").toLocal8Bit();
+	QByteArray barr = QString("TMP_CustomCoordinate").toLocal8Bit();
 	char* bdata = barr.data();
 	geode->setName(bdata);
 
@@ -1130,7 +1151,7 @@ osg::ref_ptr<osg::Node> OSGWidget::createHUD(osgViewer::Viewer* viewer) {
 	stateset->setMode(GL_BLEND, osg::StateAttribute::ON);
 
 	osg::ref_ptr<osg::Geometry> gm = new osg::Geometry;
-	gm->setName("MyBox");
+	gm->setName("TMP_MyBox");
 	gm->setNodeMask(1);
 	geode->addDrawable(gm);
 
@@ -1269,7 +1290,7 @@ osg::ref_ptr<osg::Node> OSGWidget::createHUD(osgViewer::Viewer* viewer) {
 	geode->addDrawable(text);
 	camera->addChild(geode);
 	_mViewer->getSceneData()->asGroup()->addChild(camera);
-	camera->setName("ULDCamera");
+	camera->setName("TMP_ULDCamera");
 	//this->update();
 	return camera;
 }

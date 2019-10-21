@@ -28,22 +28,12 @@
 
 #include "OSGCameraManipulator.h"
 #include "OSGPickHandler.h"
-
+#include "CloudOperator.h"
 class OSGWidget : public QOpenGLWidget
 {
 	Q_OBJECT
 
-public:
-	/**
-		点云测量
-	*/
-	enum MeauseCloud
-	{
-		NONE,//无
-		RESET,//重置
-		ONEPOINT,//测量一点
-		TWOMEAUSE//测量两点
-	};
+public:	
 	OSGWidget(QWidget *parent = nullptr);
 	~OSGWidget();
 	/**
@@ -69,6 +59,8 @@ protected:
 
 	bool event(QEvent *event) override;
 private:
+	void FrameSelectResult(QString nodeName,std::map<unsigned int, osg::Vec3> list);
+	void TestCallBack();
 	osgGA::EventQueue* getEventQueue()const;
 	void setKeyboardModifiers(QInputEvent* event);
 	/**
@@ -99,6 +91,8 @@ private:
 	osg::ref_ptr<osg::Node> createCoordinate();
 	//创建HUD
 	osg::ref_ptr<osg::Node> createHUD(osgViewer::Viewer*);
+signals:
+	void FrameSelectPoints(QString nodeName, std::map<unsigned int, osg::Vec3> list);
 public slots:
 	void onCylinder();
 	void onQuad();
@@ -108,7 +102,7 @@ public slots:
 	void onClear();
 	void onRecHeightRamp(int axis, QColor beginColor, QColor endColor);
 
-	void onSelCloudPoint(OSGWidget::MeauseCloud meause);
+	void onSelCloudPoint(MeauseCloud meause);
 
 	void onTest();
 private:

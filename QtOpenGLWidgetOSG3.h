@@ -3,6 +3,7 @@
 #include <QtWidgets/QMainWindow>
 #include "ui_QtOpenGLWidgetOSG3.h"
 #include <QColor>
+#include <QStandardItemModel>
 class QtOpenGLWidgetOSG3 : public QMainWindow
 {
 	Q_OBJECT
@@ -12,7 +13,7 @@ public:
 signals:
 	void sendHeightRamp(int axis, QColor beginColor, QColor endColor);
 	//选1点
-	void selCloudPoint(OSGWidget::MeauseCloud meause = OSGWidget::NONE);
+	void selCloudPoint(MeauseCloud meause = MeauseCloud::NONE);
 public slots:
 	/**
 		更改高度图样式
@@ -29,6 +30,9 @@ public slots:
 	void onResetSelPoint();
 	void onCancelSelPoint();
 	void on_btnTest_clicked();
+
+
+	void onFrameSelectResult(QString nodeName,std::map<unsigned int, osg::Vec3> list);
 private:
 	Ui::QtOpenGLWidgetOSG3Class ui;
 	int axisdirect = 0;
@@ -36,4 +40,6 @@ private:
 	QColor endColor = Qt::red;
 
 	QButtonGroup* radGroup;
+
+	QStandardItemModel* pTreeModel;
 };

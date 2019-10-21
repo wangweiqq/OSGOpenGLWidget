@@ -21,6 +21,7 @@
 #include <osgViewer/ViewerEventHandlers>
 #include <osgUtil/Optimizer>
 #include <osgUtil/SmoothingVisitor>
+#include <osgUtil/PolytopeIntersector>
 #include <osgWidget/Box>
 
 #include <vector>
@@ -28,6 +29,8 @@
 #include "PointIntersector.h"
 #include "PointBuildBoard.h"
 #include "MeasureBuildBoard.h"
+#include "CloudOperator.h"
+#include "FrameSelectCloud.h"
 ///**
 //	点信息板UI页面
 //*/
@@ -132,8 +135,10 @@ public:
 	void Reset();
 	/**画一个点*/
 	void OnePoint();
-	/**画二个点*/
+	/**测量两点距离*/
 	void TwoMeause();
+	//框选点
+	void FrameSelPoints();
 	void DrawTips(unsigned int primitiveIndex,osg::Vec3 pos);
 	/**
 		更新PointBuildBoard界面
@@ -157,17 +162,23 @@ private:
 	//osg::ref_ptr<osg::Group> mPickGroup;
 	osg::ref_ptr<osgViewer::Viewer> mViewer;
 	//允许画几个点
-	int allowPointsNum = 1;
+	MeauseCloud allowPointsNum = MeauseCloud::NONE;
 	/*osg::ref_ptr<osg::Geode> mOnePoint;
 	osg::ref_ptr<osg::Geode> mTwoPoint;*/
 	osg::ref_ptr<PointBuildBoard> mOneBoard;
 	/**测量*/
 	osg::ref_ptr<MeasureBuildBoard> mMeasure;
+	/**框选*/
+	osg::ref_ptr<FrameSelectCloud> mFrameSelect;
 	//创建HUD相机
 	osg::ref_ptr<osg::Camera> mHUDCamera;
 	/*std::string mOnePointName;
 	std::string mTwoPointName;
 	osg::Vec3 mOnePoint;
 	osg::Vec3 mTwoPoint;*/
+public:
+	/**框选结果回调函数*/
+	std::function<void(QString nodeName,std::map<unsigned int, osg::Vec3>)> mFrameSelectCallBack = nullptr;
+	std::function<void()> mCallback = nullptr;
 };
 
