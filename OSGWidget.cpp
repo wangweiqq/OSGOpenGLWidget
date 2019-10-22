@@ -767,7 +767,9 @@ void OSGWidget::onFront2ViewChanged() {
 	}
 	const osg::BoundingSphere& bs = mCurObject->getBound();
 	osg::Matrixd md;
-	md.makeLookAt(bs.center() + osg::Vec3(-1.0f, -1.0f, 1.0f)*3.5f*bs.radius(), bs.center(), osg::Vec3(1.0f, 1.0f, 1.0f));
+	osg::Vec3 v = osg::Vec3(-1.0f, -1.0f, 1.0f);
+	v.normalize();
+	md.makeLookAt(bs.center() + v*3.5f*bs.radius(), bs.center(), osg::Vec3(1.0f, 1.0f, 1.0f));
 	_mViewer->getCameraManipulator()->setByInverseMatrix(md);
 	this->update();
 	std::cout << "onFront2ViewChanged" << std::endl;
@@ -779,7 +781,9 @@ void OSGWidget::onBack2ViewChanged() {
 	}
 	const osg::BoundingSphere& bs = mCurObject->getBound();
 	osg::Matrixd md;
-	md.makeLookAt(bs.center() + osg::Vec3(1.0f, 1.0f, 1.0f)*3.5f*bs.radius(), bs.center(), osg::Vec3(-1.0f, -1.0f, 1.0f));
+	osg::Vec3 v = osg::Vec3(1.0f, 1.0f, 1.0f);
+	v.normalize();
+	md.makeLookAt(bs.center() + v*3.5f*bs.radius(), bs.center(), osg::Vec3(-1.0f, -1.0f, 1.0f));
 	_mViewer->getCameraManipulator()->setByInverseMatrix(md);
 	this->update();
 	std::cout << "onBack2ViewChanged" << std::endl;
