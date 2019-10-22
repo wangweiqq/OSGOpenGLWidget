@@ -1,5 +1,6 @@
+#pragma execution_character_set("utf-8")
 #include "BuildBoard.h"
-
+#include <iostream>
 
 BuildBoard::BuildBoard(QString _id, osg::ref_ptr<osgViewer::Viewer> viewer, osg::ref_ptr<osg::Camera> camera)
 	: osg::Referenced(), _viewer(viewer), _camera(camera) 
@@ -216,11 +217,33 @@ void  BuildBoard::UpdateBoxPos() {
 	}
 	//UI三角形，用于指示
 	osg::Camera* _tCamera = _viewer->getCamera();
-	osg::Matrix VPW = _tCamera->getViewMatrix() *
+	/*osg::Matrix VPW = _tCamera->getViewMatrix() *
 		_tCamera->getProjectionMatrix() *
-		_tCamera->getViewport()->computeWindowMatrix();
-	//选择点在屏幕上的坐标
-	osg::Vec3 selPosScreen = mSelPointPos * VPW;
+		_tCamera->getViewport()->computeWindowMatrix();*/
+	//选择点在屏幕上的坐标	
+	//osg::Vec3 selPosScreen = mSelPointPos * VPW;
+	osg::Vec3 selPosScreen;
+	//_viewer->projectObjectIntoWindow()
+	osgViewer::Renderer *render = dynamic_cast<osgViewer::Renderer *>(_tCamera->getRenderer());
+	//render->reset();
+	osgUtil::SceneView *sceneView = render->getSceneView(0);
+	sceneView->draw();
+	sceneView->projectObjectIntoWindow(mSelPointPos, selPosScreen);
+
+	/*osg::Matrix tmp = _tCamera->getViewMatrix();
+	osg::Vec3d tmp1 = tmp.getTrans();
+	osg::Vec3d tmp2 = tmp.getScale();
+	osg::Matrix tmp3 = _tCamera->getProjectionMatrix();
+	osg::Vec3d tmp4 = tmp3.getTrans();
+	osg::Vec3d tmp5 = tmp3.getScale();
+	osg::Viewport* tmp6 = _tCamera->getViewport();
+	std::cout << "getViewMatrix: getTrans(" << tmp1.x() << "," << tmp1.y() << "," << tmp1.z() <<
+		"),getScale(" << tmp2.x() << "," << tmp2.y() << "," << tmp2.z()
+		<< "),getProjectionMatrix getTrans(" << tmp4.x() << "," << tmp4.y() << "," << tmp4.z()
+		<< ") getScale(" << tmp5.x() << "," << tmp5.y() << "," << tmp5.z() <<
+		"),getViewport(" << tmp6->x() << "," << tmp6->y() << "," << tmp6->width() << "," << tmp6->height() << ")" << std::endl;*/
+
+	//std::cout << "screen pos:(" << selPosScreen.x()<<","<<selPosScreen.y()<<","<<selPosScreen.z()<<")" << std::endl;
 
 	std::vector<osg::Vec3> vecBoxPos = { _boxrelpos[0] + osg::Vec3(mBoxPos.x(),mBoxPos.y(),0.0) ,
 		_boxrelpos[1] + osg::Vec3(mBoxPos.x(),mBoxPos.y(),0.0),

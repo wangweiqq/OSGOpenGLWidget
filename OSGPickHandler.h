@@ -140,15 +140,16 @@ public:
 	//框选点
 	void FrameSelPoints();
 	void DrawTips(unsigned int primitiveIndex,osg::Vec3 pos);
-	/**
-		更新PointBuildBoard界面
-	*/
-	void UpdateBoard();
+	
 	//osg::ref_ptr<osg::Node> createHUD(osgViewer::Viewer* viewer);
 protected:
 	virtual bool handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa);
 	virtual void pick(osgViewer::View* view, const osgGA::GUIEventAdapter& ea);
 private:
+	/**
+	更新PointBuildBoard界面
+	*/
+	void UpdateBoard();
 	////void CreateSelPoint(QString name, osg::Vec3 pos, osg::ref_ptr<osg::Geode>& geode);
 	///**
 	//创建一个Build面板

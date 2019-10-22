@@ -8,6 +8,8 @@
 #include <osg/Point>
 #include <osg/LineWidth>
 #include <osgUtil/SmoothingVisitor>
+#include <osgUtil/SceneView>
+#include <osgViewer/Renderer>
 class BuildBoard :
 	public osg::Referenced
 {

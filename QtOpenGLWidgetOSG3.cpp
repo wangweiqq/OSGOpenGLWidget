@@ -67,6 +67,17 @@ QtOpenGLWidgetOSG3::QtOpenGLWidgetOSG3(QWidget *parent)
 
 
 	connect(this->ui.openGLWidget, SIGNAL(FrameSelectPoints(QString,std::map<unsigned int, osg::Vec3>)), this, SLOT(onFrameSelectResult(QString, std::map<unsigned int, osg::Vec3>)));
+
+
+	//йсм╪дёй╫
+	connect(this->ui.btnTopView, SIGNAL(clicked()), this->ui.openGLWidget, SLOT(onTopViewChanged()));
+	connect(this->ui.btnFrontView, SIGNAL(clicked()), this->ui.openGLWidget, SLOT(onFrontViewChanged()));
+	connect(this->ui.btnLeftView, SIGNAL(clicked()), this->ui.openGLWidget, SLOT(onLeftViewChanged()));
+	connect(this->ui.btnRearView, SIGNAL(clicked()), this->ui.openGLWidget, SLOT(onRearViewChanged()));
+	connect(this->ui.btnRightView, SIGNAL(clicked()), this->ui.openGLWidget, SLOT(onRightViewChanged()));
+	connect(this->ui.btnBottomView, SIGNAL(clicked()), this->ui.openGLWidget, SLOT(onBottomViewChanged()));
+	connect(this->ui.btnFrontView2, SIGNAL(clicked()), this->ui.openGLWidget, SLOT(onFront2ViewChanged()));
+	connect(this->ui.btnBackView2, SIGNAL(clicked()), this->ui.openGLWidget, SLOT(onBack2ViewChanged()));
 }
 void QtOpenGLWidgetOSG3::onSelPoint(QAbstractButton *button, bool checked) {
 	if (checked) {

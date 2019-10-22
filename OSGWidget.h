@@ -105,9 +105,29 @@ public slots:
 	void onSelCloudPoint(MeauseCloud meause);
 
 	void onTest();
+	//视图切换
+	//顶视图
+	void onTopViewChanged();
+	//前视图
+	void onFrontViewChanged();
+	//左视图
+	void onLeftViewChanged();
+	//后视图
+	void onRearViewChanged();
+	//右视图
+	void onRightViewChanged();
+	//底视图
+	void onBottomViewChanged();
+	//前视图2
+	void onFront2ViewChanged();
+	//后视图2
+	void onBack2ViewChanged();
 private:
 	osg::ref_ptr<osgViewer::GraphicsWindowEmbedded> _mGraphicsWindow;
 	osg::ref_ptr<osgViewer::Viewer> _mViewer;
 
 	osg::ref_ptr<OSGPickHandler> _mPickHandler = nullptr;
+
+	//当前点云
+	osg::ref_ptr<osg::Node> mCurObject;
 };

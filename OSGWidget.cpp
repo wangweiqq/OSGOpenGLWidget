@@ -93,7 +93,8 @@ void OSGWidget::initializeGL() {
 	//_mViewer->setSceneData(root);
 	//_mViewer->realize();
 	//root->addChild(createQuad().get());
-	root->addChild(createCloud().get());
+	mCurObject = createCloud();
+	root->addChild(mCurObject);
 	//root->addChild(createHUD(_mViewer));
 	//root->addChild(createCoordinate().get());
 	//root->addChild(createShape().get());
@@ -126,9 +127,9 @@ void OSGWidget::initializeGL() {
 在场景更新时渲染OpenGL
 */
 void OSGWidget::paintGL() {
-	if (_mPickHandler.valid()) {
+	/*if (_mPickHandler.valid()) {
 		_mPickHandler->UpdateBoard();
-	}
+	}*/
 	_mViewer->frame();
 	//osg::Group* group = _mViewer->getSceneData()->asGroup();
 	//for (int i = 0; i < group->getNumChildren(); ++i) {
@@ -181,13 +182,13 @@ void OSGWidget::resizeGL(int w, int h) {
 	camera->setViewport(0, 0, w, h);
 
 
-	//世界坐标转屏幕坐标
-	osg::Camera* _tCamera = _mViewer->getCamera();
-	osg::Matrix VPW = _tCamera->getViewMatrix() *
-		_tCamera->getProjectionMatrix() *
-		_tCamera->getViewport()->computeWindowMatrix();
-	osg::Vec3 window = osg::Vec3(-202.414f, 961.0f, 70.0564f) * VPW;
-	std::cout << "3.(" << window.x() << "," << window.y() << "," << window.z() << ")" << std::endl;
+	////世界坐标转屏幕坐标
+	//osg::Camera* _tCamera = _mViewer->getCamera();
+	//osg::Matrix VPW = _tCamera->getViewMatrix() *
+	//	_tCamera->getProjectionMatrix() *
+	//	_tCamera->getViewport()->computeWindowMatrix();
+	//osg::Vec3 window = osg::Vec3(-202.414f, 961.0f, 70.0564f) * VPW;
+	//std::cout << "3.(" << window.x() << "," << window.y() << "," << window.z() << ")" << std::endl;
 }
 /**
 获取OSG事件队列
@@ -260,6 +261,7 @@ void OSGWidget::wheelEvent(QWheelEvent *event) {
 	getEventQueue()->mouseScroll(event->orientation() == Qt::Vertical ?
 		(event->delta() > 0 ? osgGA::GUIEventAdapter::SCROLL_UP : osgGA::GUIEventAdapter::SCROLL_DOWN) :
 		(event->delta() > 0 ? osgGA::GUIEventAdapter::SCROLL_LEFT : osgGA::GUIEventAdapter::SCROLL_RIGHT));
+	getEventQueue()->mouseButtonPress(event->x(), event->y(), 3);
 	QOpenGLWidget::wheelEvent(event);
 }
 bool OSGWidget::event(QEvent *event) {
@@ -685,6 +687,105 @@ void OSGWidget::computeNodePosition(osg::Node* node, const osg::Camera *camera, 
 			osg::Vec3d(0.0f, 0.0f, 1.0f),
 			true);*/
 }
+
+//顶视图
+void OSGWidget::onTopViewChanged() {
+	if (!mCurObject.valid()) {
+		return;
+	}
+	const osg::BoundingSphere& bs = mCurObject->getBound();
+	osg::Matrixd md;
+	md.makeLookAt(bs.center() + osg::Z_AXIS*3.5f*bs.radius(), bs.center(),osg::Y_AXIS);
+	_mViewer->getCameraManipulator()->setByInverseMatrix(md);
+	this->update();
+	std::cout << "onTopViewChanged" << std::endl;
+}
+//前视图
+void OSGWidget::onFrontViewChanged() {
+	if (!mCurObject.valid()) {
+		return;
+	}
+	const osg::BoundingSphere& bs = mCurObject->getBound();
+	osg::Matrixd md;
+	md.makeLookAt(bs.center() - osg::Y_AXIS*3.5f*bs.radius(), bs.center(), osg::Z_AXIS);
+	_mViewer->getCameraManipulator()->setByInverseMatrix(md);
+	this->update();
+	std::cout << "onFrontViewChanged" << std::endl;
+}
+//左视图
+void OSGWidget::onLeftViewChanged() {
+	if (!mCurObject.valid()) {
+		return;
+	}
+	const osg::BoundingSphere& bs = mCurObject->getBound();
+	osg::Matrixd md;
+	md.makeLookAt(bs.center() - osg::X_AXIS*3.5f*bs.radius(), bs.center(), osg::Z_AXIS);
+	_mViewer->getCameraManipulator()->setByInverseMatrix(md);
+	this->update();
+	std::cout << "onRearViewChanged" << std::endl;
+}
+//后视图
+void OSGWidget::onRearViewChanged() {
+	if (!mCurObject.valid()) {
+		return;
+	}
+	const osg::BoundingSphere& bs = mCurObject->getBound();
+	osg::Matrixd md;
+	md.makeLookAt(bs.center() + osg::Y_AXIS*3.5f*bs.radius(), bs.center(), osg::Z_AXIS);
+	_mViewer->getCameraManipulator()->setByInverseMatrix(md);
+	this->update();
+	std::cout << "onRearViewChanged" << std::endl;
+}
+//右视图
+void OSGWidget::onRightViewChanged() {
+	if (!mCurObject.valid()) {
+		return;
+	}
+	const osg::BoundingSphere& bs = mCurObject->getBound();
+	osg::Matrixd md;
+	md.makeLookAt(bs.center() + osg::X_AXIS*3.5f*bs.radius(), bs.center(), osg::Z_AXIS);
+	_mViewer->getCameraManipulator()->setByInverseMatrix(md);
+	this->update();
+	std::cout << "onRearViewChanged" << std::endl;
+}
+//底视图
+void OSGWidget::onBottomViewChanged() {
+	if (!mCurObject.valid()) {
+		return;
+	}
+	const osg::BoundingSphere& bs = mCurObject->getBound();
+	osg::Matrixd md;
+	md.makeLookAt(bs.center() - osg::Z_AXIS*3.5f*bs.radius(), bs.center(), osg::Y_AXIS);
+	_mViewer->getCameraManipulator()->setByInverseMatrix(md);
+	this->update();
+	std::cout << "onBottomViewChanged" << std::endl;
+}
+//前视图2
+void OSGWidget::onFront2ViewChanged() {
+	if (!mCurObject.valid()) {
+		return;
+	}
+	const osg::BoundingSphere& bs = mCurObject->getBound();
+	osg::Matrixd md;
+	md.makeLookAt(bs.center() + osg::Vec3(-1.0f, -1.0f, 1.0f)*3.5f*bs.radius(), bs.center(), osg::Vec3(1.0f, 1.0f, 1.0f));
+	_mViewer->getCameraManipulator()->setByInverseMatrix(md);
+	this->update();
+	std::cout << "onFront2ViewChanged" << std::endl;
+}
+//后视图2
+void OSGWidget::onBack2ViewChanged() {
+	if (!mCurObject.valid()) {
+		return;
+	}
+	const osg::BoundingSphere& bs = mCurObject->getBound();
+	osg::Matrixd md;
+	md.makeLookAt(bs.center() + osg::Vec3(1.0f, 1.0f, 1.0f)*3.5f*bs.radius(), bs.center(), osg::Vec3(-1.0f, -1.0f, 1.0f));
+	_mViewer->getCameraManipulator()->setByInverseMatrix(md);
+	this->update();
+	std::cout << "onBack2ViewChanged" << std::endl;
+}
+
+
 /**
 度点云文件
 */

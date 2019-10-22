@@ -727,6 +727,10 @@ bool OSGPickHandler::handle(const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAd
 			}
 		}
 		break;
+		case osgGA::GUIEventAdapter::FRAME:
+			UpdateBoard();
+			//std::cout << "osgGA::GUIEventAdapter::FRAME" << std::endl;
+		break;
 		}
 	}
 	return false;
