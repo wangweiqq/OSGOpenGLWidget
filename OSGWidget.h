@@ -45,6 +45,9 @@ public:
 	*/
 	void ChangedCloudColor(osg::Geode* geode,osg::Vec3 axis,osg::Vec4 begColor, osg::Vec4 endColor);
 protected:
+
+	virtual void timerEvent(QTimerEvent *event);
+
 	void initializeGL()override;
 	void paintGL()override;
 	void resizeGL(int w, int h)override;

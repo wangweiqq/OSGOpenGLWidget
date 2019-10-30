@@ -31,10 +31,17 @@ OSGWidget::OSGWidget(QWidget *parent)
 	//setMouseTracking(true);
 	setFocusPolicy(Qt::StrongFocus);
 	this->setMinimumSize(100, 100);
+	this->startTimer(1000);
 }
 
 OSGWidget::~OSGWidget()
 {
+}
+void OSGWidget::timerEvent(QTimerEvent *event) {
+	if (_mPickHandler.valid()) {
+		this->update();
+		//_mPickHandler->UpdateBoard();
+	}
 }
 /**
 设置OpenGL资源和状态
@@ -770,6 +777,7 @@ void OSGWidget::onFront2ViewChanged() {
 	osg::Vec3 v = osg::Vec3(-1.0f, -1.0f, 1.0f);
 	v.normalize();
 	md.makeLookAt(bs.center() + v*3.5f*bs.radius(), bs.center(), osg::Vec3(1.0f, 1.0f, 1.0f));
+	//md.makeLookAt(bs.center() + v*3.5f*bs.radius(), bs.center(), -v);
 	_mViewer->getCameraManipulator()->setByInverseMatrix(md);
 	this->update();
 	std::cout << "onFront2ViewChanged" << std::endl;
