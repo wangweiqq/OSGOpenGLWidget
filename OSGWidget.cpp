@@ -15,6 +15,7 @@
 #pragma comment(lib,"osgUtil.lib")
 #pragma comment(lib,"osgText.lib")
 #pragma comment(lib,"osgWidget.lib")
+#pragma comment(lib,"OpenThreads.lib")
 #endif
 
 #include "OSGWidget.h"
