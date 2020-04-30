@@ -76,10 +76,7 @@ private:
 	//osg::ref_ptr<osg::Vec3dArray> ReadModelFile(std::string filename);
 	osg::ref_ptr<osg::Vec3Array> ReadModelFile(std::string filename);
 	//测试：
-	/**
-		创建圆柱
-	*/
-	osg::ref_ptr<osg::Node> createCylinder();
+	
 	/**
 	创建OSG滑翔机模型
 	*/
@@ -90,8 +87,15 @@ private:
 	osg::ref_ptr<osg::Node> createCloud();
 	//创建预定义几何体
 	osg::ref_ptr<osg::Node> createShape();
+	/**
+		创建圆柱
+	*/
+	//osg::ref_ptr<osg::Node> createCylinder();
+	//画圆柱
+	osg::ref_ptr<osg::Node> createCylinder();
 	//绘制坐标轴
 	osg::ref_ptr<osg::Node> createCoordinate();
+	osg::ref_ptr<osg::Node> createLine();
 	//创建HUD
 	osg::ref_ptr<osg::Node> createHUD(osgViewer::Viewer*);
 signals:

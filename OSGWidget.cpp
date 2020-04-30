@@ -19,6 +19,8 @@
 #endif
 
 #include "OSGWidget.h"
+#include <QDebug>
+#include <Eigen\Eigen>
 /**
 1、创建图形上下文和图形窗口
 2、将图形上下文附加到相机
@@ -103,6 +105,8 @@ void OSGWidget::initializeGL() {
 	//root->addChild(createQuad().get());
 	mCurObject = createCloud();
 	root->addChild(mCurObject);
+	root->addChild(createCylinder());
+	root->addChild(createLine());
 	//root->addChild(createHUD(_mViewer));
 	//root->addChild(createCoordinate().get());
 	//root->addChild(createShape().get());
@@ -226,6 +230,7 @@ void OSGWidget::mouseMoveEvent(QMouseEvent *event) {
 	setKeyboardModifiers(event);
 	getEventQueue()->mouseMotion(event->x(), event->y());
 	QOpenGLWidget::mouseMoveEvent(event);
+	//qDebug() << "move : ";
 }
 void OSGWidget::mousePressEvent(QMouseEvent *event) {
 	setKeyboardModifiers(event);
@@ -269,7 +274,7 @@ void OSGWidget::wheelEvent(QWheelEvent *event) {
 	getEventQueue()->mouseScroll(event->orientation() == Qt::Vertical ?
 		(event->delta() > 0 ? osgGA::GUIEventAdapter::SCROLL_UP : osgGA::GUIEventAdapter::SCROLL_DOWN) :
 		(event->delta() > 0 ? osgGA::GUIEventAdapter::SCROLL_LEFT : osgGA::GUIEventAdapter::SCROLL_RIGHT));
-	getEventQueue()->mouseButtonPress(event->x(), event->y(), 3);
+	//getEventQueue()->mouseButtonPress(event->x(), event->y(), 3);
 	QOpenGLWidget::wheelEvent(event);
 }
 bool OSGWidget::event(QEvent *event) {
@@ -935,26 +940,7 @@ osg::ref_ptr<osg::Node> OSGWidget::createQuad() {
 
 	return geode.get();
 }
-osg::ref_ptr<osg::Node> OSGWidget::createCylinder() {
-	//构造测试圆柱
-	osg::ref_ptr<osg::Cylinder> cylinder = new osg::Cylinder(osg::Vec3(0.f, 0.f, 0.f), 0.25f, 0.5f);
-	osg::ref_ptr<osg::ShapeDrawable> sd = new osg::ShapeDrawable(cylinder);
-	QByteArray barr = QString("TMP_zidingyi1").toLocal8Bit();
-	char* bdata = barr.data();
-	sd->setName(barr);
-	sd->setColor(osg::Vec4(1.0, 0.0, 0.0, 1.0));
-	//叶子节点
-	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
-	geode->addDrawable(sd);
-	barr = QString("TMP_圆柱").toLocal8Bit();
-	bdata = barr.data();
-	geode->setName(bdata);
-	//osg::ref_ptr<osg::StateSet> stateSet = geode->getOrCreateStateSet();
-	//osg::ref_ptr<osg::Material> material = new osg::Material;
-	//material->setColorMode(osg::Material::AMBIENT_AND_DIFFUSE);
-	//stateSet->setAttributeAndModes(material, osg::StateAttribute::ON);
-	return geode;
-}
+
 osg::ref_ptr<osg::Node> OSGWidget::createOSGGlider() {
 	osg::ref_ptr<osg::Node> node = osgDB::readRefNodeFile("glider.osg");
 	QByteArray barr = QString("TMP_飞机").toLocal8Bit();
@@ -1015,8 +1001,11 @@ osg::ref_ptr<osg::Node> OSGWidget::createCloud() {
 
 	//将图元添加至叶子节点
 	geode->addDrawable(geom.get());
-
-	geode->getOrCreateStateSet()->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
+	osg::ref_ptr<osg::StateSet> stateset = geode->getOrCreateStateSet();
+	osg::ref_ptr<osg::Point> pointSize = new osg::Point;
+	pointSize->setSize(10.0);
+	stateset->setAttribute(pointSize, osg::StateAttribute::OFF);
+	stateset->setMode(GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
 
 	//自动生成顶点法线(必须在addDrawable后)
 	osgUtil::SmoothingVisitor::smooth(*(geom.get()));
@@ -1088,6 +1077,65 @@ osg::ref_ptr<osg::Node> OSGWidget::createShape() {
 	//太空舱
 	geode->addDrawable(new osg::ShapeDrawable(new osg::Capsule(osg::Vec3(8.0f, 0.0f, 0.0f), radius, height), hints));
 	return geode.get();
+}
+//osg::ref_ptr<osg::Node> OSGWidget::createCylinder() {
+//	//构造测试圆柱
+//	osg::ref_ptr<osg::Cylinder> cylinder = new osg::Cylinder(osg::Vec3(0.f, 0.f, 0.f), 0.25f, 0.5f);
+//	osg::ref_ptr<osg::ShapeDrawable> sd = new osg::ShapeDrawable(cylinder);
+//	QByteArray barr = QString("TMP_zidingyi1").toLocal8Bit();
+//	char* bdata = barr.data();
+//	sd->setName(barr);
+//	sd->setColor(osg::Vec4(1.0, 0.0, 0.0, 1.0));
+//	//叶子节点
+//	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+//	geode->addDrawable(sd);
+//	barr = QString("TMP_圆柱").toLocal8Bit();
+//	bdata = barr.data();
+//	geode->setName(bdata);
+//	//osg::ref_ptr<osg::StateSet> stateSet = geode->getOrCreateStateSet();
+//	//osg::ref_ptr<osg::Material> material = new osg::Material;
+//	//material->setColorMode(osg::Material::AMBIENT_AND_DIFFUSE);
+//	//stateSet->setAttributeAndModes(material, osg::StateAttribute::ON);
+//	return geode;
+//}
+osg::ref_ptr<osg::Node> OSGWidget::createCylinder() {
+	Eigen::Vector3f pos1(-191.5707, 1070, 71.2536);
+	//Eigen::Vector3f pos2(-205.8117, 952, 71.762);
+	Eigen::Vector3f pos2(94.5888, 889, 71.4176);
+	Eigen::Vector3f pos3 = (pos2 - pos1);
+	pos3.normalize();
+	std::cout << "pos3" << pos3 << std::endl;
+	osg::Vec3 normal(pos3.x(), pos3.y(), pos3.z());
+
+	Eigen::Vector3f pos4(0, 0, 1);
+	pos4.normalize();
+	osg::Vec3 pos5(pos4.x(), pos4.y(), pos4.z());
+
+	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+	//精细程度
+	osg::ref_ptr<osg::TessellationHints> hints = new osg::TessellationHints;
+	hints->setDetailRatio(0.5f);
+	osg::ref_ptr<osg::Cylinder> cyl = new osg::Cylinder(osg::Vec3(0, 0, 0), 100, 50);
+	
+	//osg::ref_ptr<osg::Cylinder> cyl = new osg::Cylinder(osg::Vec3(-213.5385, 1094, 71.6636), 100, 50);
+	//osg::Quat q = cyl->getRotation();
+	//osg::Quat q2 = q*normal;
+	//cyl->setRotation();
+	osg::ref_ptr<osg::ShapeDrawable> shape = new osg::ShapeDrawable(cyl, hints);
+	shape->setColor(osg::Vec4(1.0, 1.0, 0.2, 0.7));
+	//圆柱
+	geode->addDrawable(shape);
+	osg::ref_ptr<osg::StateSet> stateset = geode->getOrCreateStateSet();
+	//开启透明混合，arpha混合
+	stateset->setMode(GL_BLEND, osg::StateAttribute::ON);
+	//开启透明度
+	stateset->setRenderingHint(osg::StateSet::TRANSPARENT_BIN);
+
+	osg::ref_ptr<osg::MatrixTransform> mt = new osg::MatrixTransform;
+	mt->setMatrix(osg::Matrix::rotate(osg::Vec3(0, 0, 1), normal) * osg::Matrix::translate(osg::Vec3(-213.5385, 1094, 71.6636)));
+	//mt->setMatrix(osg::Matrix::rotate(osg::Vec3(0, 0, 1), normal));
+	mt->addChild(geode);
+	return mt;
 }
 osg::Node* OSGWidget::getChildNode(std::string name) {
 	osg::ref_ptr<osg::Node> rNode = _mViewer->getSceneData();
@@ -1174,6 +1222,38 @@ void OSGWidget::ChangedCloudColor(osg::Geode* geode, osg::Vec3 axis, osg::Vec4 b
 	//设置颜色绑定方式为单个顶点
 	cloudGeom->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
 	this->update();
+}
+//画线
+osg::ref_ptr<osg::Node> OSGWidget::createLine() {
+	osg::ref_ptr<osg::Geode> geode = new osg::Geode;
+	osg::ref_ptr<osg::Geometry> geom = new osg::Geometry();
+	//创建四个顶点
+	osg::ref_ptr<osg::Vec3Array> v = new osg::Vec3Array();
+	v->push_back(osg::Vec3(-197.9721, 1079, 72.6148));
+	v->push_back(osg::Vec3(-275.1696, 128, 74.6484));
+	v->push_back(osg::Vec3(184.0674, 86, 74.0580));
+	v->push_back(osg::Vec3(257.7117, 1042, 72.5984));
+	geom->setVertexArray(v.get());
+	osg::ref_ptr<osg::Vec4Array> c = new osg::Vec4Array();
+	c->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f)); //坐标原点为白色
+	c->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f)); //x red
+	c->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f)); //坐标原点为白色
+	c->push_back(osg::Vec4(1.0f, 0.0f, 0.0f, 1.0f)); //y green
+	geom->setColorArray(c);
+	//设置颜色绑定方式为单个顶点
+	geom->setColorBinding(osg::Geometry::BIND_PER_VERTEX);
+	//geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINE_STRIP, 0, v->size()));
+	geom->addPrimitiveSet(new osg::DrawArrays(osg::PrimitiveSet::LINE_LOOP, 0, v->size()));
+		//LINES = 1,LINE_LOOP  =2,LINE_STRIP = 3,
+	geode->getOrCreateStateSet()->setMode(GL_LIGHTING,
+		osg::StateAttribute::OFF);
+	//设置线宽
+	osg::ref_ptr<osg::LineWidth> width = new osg::LineWidth;
+	width->setWidth(1.0);
+	geom->getOrCreateStateSet()->setAttributeAndModes(width);
+	geode->addDrawable(geom.get());
+
+	return geode;
 }
 //绘制坐标轴
 osg::ref_ptr<osg::Node> OSGWidget::createCoordinate() {
